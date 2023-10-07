@@ -22,6 +22,7 @@
     "react-native": "0.72.5",
     "react-native-dotenv": "^3.4.9",
     "react-native-mongodb": "^1.0.0",
+    "react-native-typewriter": "^0.7.0",
     "realm": "^12.2.1"
   },
   "devDependencies": {
