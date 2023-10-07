@@ -65,11 +65,13 @@ export default function Login() {
         <View style={styles.spacing}>
           <View style={styles.helloWorldContainer}>
             {type ? (
-              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={70} typing={1}>
-                Hello World!
+              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
+                Welcome to Fit AI
               </TypeWriter>
             ) : (
-              <Text style={styles.textcolor}>Hello World!</Text>
+              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
+                Become Fit Today.
+              </TypeWriter>
             )}
           </View>
 
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 12,
     paddingLeft: 10,
-    color: 'black',
+    color: 'dimgrey',
   },
   button: {
     justifyContent: 'center',
