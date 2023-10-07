@@ -1,29 +1,43 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
-export default function Login() {
-  const [username, setUsername] = useState('');
+export default function Register() {
+  const [name, setName] = useState(''); // Change the state variable name
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const navigation = useNavigation();
-  const handleLogin = () => {
-    // Implement your login logic here
-    console.log('Username:', username);
-    console.log('Password:', password);
-  };
 
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post('http://10.127.130.59:3000/registerUser', {
+        name: name, // Updated state variable name
+        password: password,
+        email: email,
+      });
+
+      if (response.data.message === 'User registered successfully') {
+        console.log('User registered successfully');
+        // Optionally, you can navigate to another screen after successful registration
+        // navigation.navigate('SuccessScreen');
+      }
+    } catch (error) {
+      console.error('Error registering user:', error);
+    }
+  };
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Register', // Set the title of the navigation bar
+      title: 'Register',
       headerStyle: {
-        backgroundColor: 'white', // Change the background color
+        backgroundColor: 'white',
       },
-      headerTintColor: 'black', // Change the text color
+      headerTintColor: 'black',
       headerTitleStyle: {
-        fontWeight: 'bold', // Change the title text style
+        fontWeight: 'bold',
       },
-      headerBackTitle: ' '
+      headerBackTitle: ' ',
     });
   }, [navigation]);
 
@@ -34,17 +48,17 @@ export default function Login() {
         style={styles.logo}
       />
       <View>
-      <TextInput
+        <TextInput
           style={styles.input}
           placeholderTextColor="black"
           placeholder="Email"
-          onChangeText={(text) => setUsername(text)}
+          onChangeText={(text) => setEmail(text)}
         />
         <TextInput
           style={styles.input}
           placeholderTextColor="black"
           placeholder="Username"
-          onChangeText={(text) => setUsername(text)}
+          onChangeText={(text) => setName(text)} // Updated state variable name
         />
         <TextInput
           style={styles.input}
@@ -53,12 +67,8 @@ export default function Login() {
           placeholderTextColor="black"
           onChangeText={(text) => setPassword(text)}
         />
-        
-        <Button
-          title="Register"
-          onPress={handleLogin}
-          color="black"
-        />
+
+        <Button title="Register" onPress={handleRegister} color="black" />
       </View>
     </View>
   );
@@ -79,7 +89,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 12,
     paddingLeft: 10,
-    color: 'black', // Text color for input fields
+    color: 'black',
   },
   logo: {
     width: 150,
