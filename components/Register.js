@@ -91,15 +91,15 @@ export default function Register() {
 
   const renderInput = () => {
     switch(step) {
-      case 1: return <TextInput style={styles.input} placeholder="Full Name" onChangeText={(text) => setFullName(text)} />;
-      case 2: return <TextInput style={styles.input} placeholder="Email" onChangeText={(text) => setEmail(text)} />;
-      case 3: return <TextInput style={styles.input} placeholder="Age" keyboardType="numeric" onChangeText={(text) => setAge(text)} />;
-      case 4: return <TextInput style={styles.input} placeholder="Gender (e.g. Male, Female)" onChangeText={(text) => setGender(text)} />;
-      case 5: return <TextInput style={styles.input} placeholder="Weight" keyboardType="numeric" onChangeText={(text) => setWeight(text)} />;
-      case 6: return <TextInput style={styles.input} placeholder="Height" keyboardType="numeric" onChangeText={(text) => setHeight(text)} />;
-      case 7: return <TextInput style={styles.input} placeholder="Fitness Goal (e.g. Weight Loss, Muscle Gain)" onChangeText={(text) => setGoal(text)} />;
-      case 8: return <TextInput style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
-      case 9: return <TextInput style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
+      case 1: return <TextInput value={fullName} style={styles.input} placeholder="Full Name" onChangeText={(text) => setFullName(text)} />;
+      case 2: return <TextInput value={email} style={styles.input} placeholder="Email" onChangeText={(text) => setEmail(text)} />;
+      case 3: return <TextInput value={age} style={styles.input} placeholder="Age" keyboardType="numeric" onChangeText={(text) => setAge(text)} />;
+      case 4: return <TextInput value={gender} style={styles.input} placeholder="Gender (e.g. Male, Female)" onChangeText={(text) => setGender(text)} />;
+      case 5: return <TextInput value={weight} style={styles.input} placeholder="Weight" keyboardType="numeric" onChangeText={(text) => setWeight(text)} />;
+      case 6: return <TextInput value={height} style={styles.input} placeholder="Height" keyboardType="numeric" onChangeText={(text) => setHeight(text)} />;
+      case 7: return <TextInput value={goal} style={styles.input} placeholder="Fitness Goal (e.g. Weight Loss, Muscle Gain)" onChangeText={(text) => setGoal(text)} />;
+      case 8: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
+      case 9: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
       default: return null;
     }
   };
