@@ -65,11 +65,11 @@ export default function Login() {
         <View style={styles.spacing}>
           <View style={styles.helloWorldContainer}>
             {type ? (
-              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
+              <TypeWriter fixed={true} onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
                 Welcome to Fit AI
               </TypeWriter>
             ) : (
-              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
+              <TypeWriter fixed={true} onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
                 Become Fit Today.
               </TypeWriter>
             )}

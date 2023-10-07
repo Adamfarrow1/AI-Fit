@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 export default function Register() {
   const [step, setStep] = useState(1); // To keep track of the current step
@@ -26,6 +27,37 @@ export default function Register() {
 
   const navigation = useNavigation();
 
+
+
+  const handleRegister = async () => {
+    try {
+      const response = await axios.post('http://10.127.130.59:3000/registerUser', {
+        name: username,
+        password: password,
+        fullName: fullName,
+        email: email,
+        age: age,
+        gender: gender,
+        weight: weight,
+        height: height,
+        goal: goal,
+      });
+
+      if (response.data.message === 'User registered successfully') {
+        console.log('User register successful');
+        setUsername('');
+        setPassword('');
+        // Optionally, you can navigate to another screen after successful login
+        // navigation.navigate('SuccessScreen');
+      }
+    } catch (error) {
+      console.error('Error register user:', error);
+    }
+  };
+
+
+
+
   const dismissKeyboard = () => {
     Keyboard.dismiss(); // Dismiss the keyboard when the screen is tapped
   };
@@ -34,6 +66,7 @@ export default function Register() {
     if (step < 9) {
       setStep(step + 1);
     } else {
+      handleRegister();
       console.log('Full Registration Details:', {
         fullName, email, age, gender, weight, height, goal, username, password
       });

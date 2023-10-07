@@ -20,9 +20,15 @@ mongoose
 
 // Define a Mongoose schema for your data
 const userSchema = new mongoose.Schema({
-  name: String,
-  password: String,
-  email: String,
+      name: String,
+      password: String,
+      fullName: String,
+      email: String,
+      age: String,
+      gender: String,
+      weight: String,
+      height: String,
+      goal: String,
 });
 
 // Create a model using the schema
@@ -51,8 +57,23 @@ app.post('/registerUser', async (req, res) => {
   try {
     // Create a new user using data from the request body
     console.log(req.body)
-    const { name, password, email } = req.body;
-    const newUser = new UserModel({ name, password, email });
+    const { password,
+      fullName,
+      email,
+      age,
+      gender,
+      weight,
+      height,
+      goal} = req.body;
+    const newUser = new UserModel({
+      password,
+      fullName,
+      email,
+      age,
+      gender,
+      weight,
+      height,
+      goal});
     
     // Save the new user to the database
     await newUser.save();
