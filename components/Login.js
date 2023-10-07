@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Image, Text } from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Image,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
@@ -41,55 +52,54 @@ export default function Login() {
     });
   }, [navigation]);
 
+  const dismissKeyboard = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard when the screen is tapped
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.spacing}>
-        <View style={styles.helloWorldContainer}>
-          {type ? (
-            <Text style={styles.textcolor}>
-              <TypeWriter onTypingEnd={handleTypewriter} minDelay={150} typing={1}>
-                Welcome to Fit AI
+    <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.spacing}>
+          <View style={styles.helloWorldContainer}>
+            {type ? (
+              <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={70} typing={1}>
+                Hello World!
               </TypeWriter>
-            </Text>
-          ) : (
-            <Text style={styles.textcolor}>
-              <TypeWriter onTypingEnd={handleTypewriter} minDelay={150} typing={1}>
-                Become Fit Today.
-              </TypeWriter>
-            </Text>
-          )}
-        </View>
+            ) : (
+              <Text style={styles.textcolor}>Hello World!</Text>
+            )}
+          </View>
 
-        <View style={styles.center}>
-          <TextInput
-            style={styles.input}
-            placeholderTextColor="#6b6776"
-            placeholder="Username"
-            value={username}
-            onChangeText={(text) => setUsername(text)}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            secureTextEntry={true}
-            placeholderTextColor="#6b6776"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-          />
-          <View style={styles.apart}>
-            <View style={styles.button}>
-              <Button title="Login" onPress={handleLogin} color="black" />
-            </View>
-
-            <Button
-              title="New User? Register"
-              onPress={() => navigation.navigate('Register')}
-              color="#6b6776"
+          <View style={styles.center}>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="#6b6776"
+              placeholder="Username"
+              value={username}
+              onChangeText={(text) => setUsername(text)}
             />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              secureTextEntry={true}
+              placeholderTextColor="#6b6776"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+            />
+            <View style={styles.apart}>
+              <View style={styles.button}>
+                <Button title="Login" onPress={handleLogin} color="black" />
+              </View>
+
+              <Button title="New User? Register" onPress={() => navigation.navigate('Register')} color="#6b6776" />
+            </View>
           </View>
         </View>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -138,6 +148,6 @@ const styles = StyleSheet.create({
   },
   helloWorldContainer: {
     marginBottom: 130,
-    height: 50 // Adjust the margin as needed
+    height: 50,
   },
 });
