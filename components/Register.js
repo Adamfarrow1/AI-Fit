@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -181,7 +182,9 @@ export default function Register() {
           <View style={styles.center}>
             {renderInput()}
             <View style={styles.button}>
-              <Button title="Next" onPress={advanceStep} color="black" />
+              <TouchableOpacity onPress={advanceStep} style={styles.fullWidthButton}>
+                <Text style={styles.buttonText}>Next</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -247,6 +250,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 15,
   },
+
+  fullWidthButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'aqua',
+    paddingVertical: 15,
+    borderRadius: 20,
+    width: '100%', // Take up the full width inside the button container
+  },
+  buttonText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
   center: {
     justifyContent: 'center',
     alignItems: 'center',
