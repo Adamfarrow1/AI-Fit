@@ -6,11 +6,19 @@ import {
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
+<<<<<<< HEAD
+=======
+  TouchableOpacity,
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
   Keyboard,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+<<<<<<< HEAD
+=======
+import { Picker } from '@react-native-picker/picker';
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
 import axios from 'axios';
 
 export default function Register() {
@@ -20,18 +28,33 @@ export default function Register() {
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [weight, setWeight] = useState('');
+<<<<<<< HEAD
   const [height, setHeight] = useState('');
   const [goal, setGoal] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+=======
+  const [heightFeet, setHeightFeet] = useState('5');  // Defaulting to 5 feet
+  const [heightInches, setHeightInches] = useState(0); // Defaulting to 0 inches
+  const [goal, setGoal] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const height = `${heightFeet}'${heightInches}"`;
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
   const navigation = useNavigation();
 
 
 
   const handleRegister = async () => {
     try {
+<<<<<<< HEAD
       const response = await axios.post('http://10.127.130.59:3000/registerUser', {
+=======
+      console.log('Attempting to create user');
+      const height = `${heightFeet}'${heightInches}"`;
+      const response = await axios.post('http://192.168.1.178:3000/registerUser', {
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
         name: username,
         password: password,
         fullName: fullName,
@@ -43,6 +66,12 @@ export default function Register() {
         goal: goal,
       });
 
+<<<<<<< HEAD
+=======
+      console.log('Step one done');
+
+
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
       if (response.data.message === 'User registered successfully') {
         console.log('User register successful');
         setUsername('');
@@ -51,7 +80,12 @@ export default function Register() {
         // navigation.navigate('SuccessScreen');
       }
     } catch (error) {
+<<<<<<< HEAD
       console.error('Error register user:', error);
+=======
+      console.error('Error registering user:', error.message);
+      console.error('Stack trace:', error.stack);
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
     }
   };
 
@@ -93,10 +127,68 @@ export default function Register() {
     switch(step) {
       case 1: return <TextInput value={fullName} style={styles.input} placeholder="Full Name" onChangeText={(text) => setFullName(text)} />;
       case 2: return <TextInput value={email} style={styles.input} placeholder="Email" onChangeText={(text) => setEmail(text)} />;
+<<<<<<< HEAD
       case 3: return <TextInput value={age} style={styles.input} placeholder="Age" keyboardType="numeric" onChangeText={(text) => setAge(text)} />;
       case 4: return <TextInput value={gender} style={styles.input} placeholder="Gender (e.g. Male, Female)" onChangeText={(text) => setGender(text)} />;
       case 5: return <TextInput value={weight} style={styles.input} placeholder="Weight" keyboardType="numeric" onChangeText={(text) => setWeight(text)} />;
       case 6: return <TextInput value={height} style={styles.input} placeholder="Height" keyboardType="numeric" onChangeText={(text) => setHeight(text)} />;
+=======
+      case 3: // Age
+        return (
+          <Picker
+            selectedValue={age}
+            style={styles.picker}
+            itemStyle={{ color: 'white' }}
+            onValueChange={(itemValue) => setAge(itemValue)}
+          >
+            {[...Array(100).keys()].map((_, index) => (
+              <Picker.Item key={index} label={String(index + 1)} value={String(index + 1)} />
+            ))}
+          </Picker>
+        );
+      case 4: return <TextInput value={gender} style={styles.input} placeholder="Gender (e.g. Male, Female)" onChangeText={(text) => setGender(text)} />;
+      case 5: // Weight
+        return (
+          <Picker
+              selectedValue={age}
+              style={styles.picker}
+              itemStyle={{ color: 'white' }}
+              onValueChange={(itemValue) => setAge(itemValue)}
+          >
+              {[...Array(341).keys()].map((_, index) => (
+                  <Picker.Item key={index} label={String(index + 60)} value={String(index + 60)} />
+              ))}
+          </Picker>
+        );
+        case 6:
+          return (
+            <View style={styles.heightContainer}>
+              <Picker
+                selectedValue={heightFeet}
+                style={styles.heightPicker}
+                itemStyle={{ color: 'white' }}
+                onValueChange={(itemValue) => setHeightFeet(itemValue)}
+              >
+                {[...Array(8).keys()].map((_, index) => (
+                  <Picker.Item key={index} label={String(index + 3)} value={String(index + 3)} /> 
+                ))}
+              </Picker>
+              <Text style={styles.heightText}>ft</Text>
+              <Picker
+                selectedValue={heightInches}
+                style={styles.heightPicker}
+                itemStyle={{ color: 'white' }}
+                onValueChange={(itemValue) => setHeightInches(itemValue)}
+              >
+                {[...Array(12).keys()].map((_, index) => (
+                  <Picker.Item key={index} label={String(index)} value={index} />
+                ))}
+              </Picker>
+              <Text style={styles.heightText}>in</Text>
+            </View>
+          );
+        
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
       case 7: return <TextInput value={goal} style={styles.input} placeholder="Fitness Goal (e.g. Weight Loss, Muscle Gain)" onChangeText={(text) => setGoal(text)} />;
       case 8: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
       case 9: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
@@ -122,7 +214,13 @@ export default function Register() {
           <View style={styles.center}>
             {renderInput()}
             <View style={styles.button}>
+<<<<<<< HEAD
               <Button title="Next" onPress={advanceStep} color="black" />
+=======
+              <TouchableOpacity onPress={advanceStep} style={styles.fullWidthButton}>
+                <Text style={styles.buttonText}>Next</Text>
+              </TouchableOpacity>
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
             </View>
           </View>
         </View>
@@ -138,6 +236,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#201a30',
   },
+<<<<<<< HEAD
   input: {
     width: 300,
     height: 50,
@@ -147,6 +246,47 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingLeft: 10,
     color: 'black',
+=======
+
+
+  heightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: 300,
+  },
+  
+  heightPicker: {
+    width: 100,
+    height: 220,
+    color: 'white',
+  },
+  
+  heightText: {
+    color: 'white',
+    fontSize: 18,
+    marginHorizontal: 5,
+  },
+  
+  input: {
+    width: 300,
+    height: 70,
+    borderColor: 'dimgray',
+    borderWidth: 1,
+    marginBottom: 20,
+    borderRadius: 15,  // Increased for a softer edge
+    paddingLeft: 15,   // Slight increase for better spacing
+    paddingTop: 10,    // Vertical padding for better spacing
+    paddingBottom: 10,
+    fontSize: 18,      // Increased font size
+    color: 'white',
+    textAlign: 'center', // Center the text
+    elevation: 5,
+},
+  picker: {  
+    width: 300,
+    height: 200,
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
   },
   button: {
     justifyContent: 'center',
@@ -158,6 +298,25 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginTop: 15,
   },
+<<<<<<< HEAD
+=======
+
+  fullWidthButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'aqua',
+    paddingVertical: 15,
+    borderRadius: 20,
+    width: '100%', // Take up the full width inside the button container
+  },
+  buttonText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
   center: {
     justifyContent: 'center',
     alignItems: 'center',

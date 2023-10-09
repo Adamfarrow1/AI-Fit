@@ -9,6 +9,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "@react-native-picker/picker": "^2.5.1",
+>>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
     "@react-navigation/native": "^6.1.8",
     "@react-navigation/stack": "^6.3.18",
     "axios": "^1.5.1",
