@@ -22,6 +22,7 @@ mongoose
 const userSchema = new mongoose.Schema({
       name: String,
       password: String,
+      userName: String,
       fullName: String,
       email: String,
       age: String,
@@ -55,52 +56,37 @@ app.get('/getData/:name', async (req, res) => {
 
 app.post('/registerUser', async (req, res) => {
   try {
-<<<<<<< HEAD
-    // Create a new user using data from the request body
-    console.log(req.body)
-    const { password,
-=======
     // Log the incoming request body
     console.log("Received request with body:", req.body);
 
     // Extract data from the request body
     const {
       password,
->>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
       fullName,
+      userName,
       email,
       age,
       gender,
       weight,
       height,
-<<<<<<< HEAD
-      goal} = req.body;
-=======
       goal
     } = req.body;
 
     // Log the extracted data
     console.log("Extracted data:", {
-      password, fullName, email, age, gender, weight, height, goal
+      password, userName, fullName, email, age, gender, weight, height, goal
     });
 
 
->>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
     const newUser = new UserModel({
       password,
       fullName,
+      userName,
       email,
       age,
       gender,
       weight,
       height,
-<<<<<<< HEAD
-      goal});
-    
-    // Save the new user to the database
-    await newUser.save();
-
-=======
       goal
     });
 
@@ -111,7 +97,6 @@ app.post('/registerUser', async (req, res) => {
     await newUser.save();
 
     console.log("User saved successfully");
->>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
     res.json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -120,24 +105,22 @@ app.post('/registerUser', async (req, res) => {
 });
 
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
 // Route to handle user login
 app.post('/login', async (req, res) => {
   try {
+    console.log(req.body)
     // Extract the username and password from the request body
-    const { name, password } = req.body;
+    const { userName, password } = req.body;
 
     // Query the database to find a user with the given username and password
-    const user = await UserModel.findOne({ name, password });
-
+    const user = await UserModel.findOne({ userName, password });
     if (!user) {
       // If no user is found, return an error response
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+    console.log("user login success: " + user)
 
     // If the user is found, you can customize the response accordingly
     res.json({ message: 'Login successful', user });

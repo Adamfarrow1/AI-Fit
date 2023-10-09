@@ -4,7 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from './components/Login'; // Adjust the import path as needed
 import Register from './components/Register';
-
+import { AuthProvider } from './context/authcontext';
+import Home from './components/Homepage';
 
 import axios from 'axios';
 
@@ -27,14 +28,19 @@ useEffect(() => {
     });
 }, []);
 
+
 return (
+  
     <View style={styles.container}>
-      <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-      </Stack.Navigator>
-    </NavigationContainer>
+        <AuthProvider>
+          <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="Register" component={Register} />
+            <Stack.Screen name="Home" component={Home} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
     </View>
   );
 }

@@ -4,8 +4,6 @@ import {
   TextInput,
   Button,
   StyleSheet,
-  Image,
-  Text,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
@@ -14,24 +12,35 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
+import { useAuth } from '../context/authcontext';
+
 
 export default function Login() {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [type, setType] = useState(true);
+  const { user, login } = useAuth();
 
   const handleLogin = async () => {
+    console.log(username + ' ' + password)
     try {
       const response = await axios.post('http://10.127.130.59:3000/login', {
-        name: username,
+        userName: username,
         password: password,
       });
+      
+      login({
+        userName: username,
+        password: password,
+      });
+
 
       if (response.data.message === 'Login successful') {
         console.log('User login successful');
         setUsername('');
         setPassword('');
+        navigation.navigate("Home");
         // Optionally, you can navigate to another screen after successful login
         // navigation.navigate('SuccessScreen');
       }
@@ -120,11 +129,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 12,
     paddingLeft: 10,
-<<<<<<< HEAD
-    color: 'dimgrey',
-=======
     color: 'white',
->>>>>>> aa107b13d08e843d0b169a66a2ec5fa8ebbbf5db
   },
   button: {
     justifyContent: 'center',
