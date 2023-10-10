@@ -12,7 +12,7 @@ export default function Home(){
     const { user, login } = useAuth();
     console.log(user);
   return (
-      <Tab.Navigator initialRouteName='Home'>
+      <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false}}>
         <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home" }} />
         <Tab.Screen name="Screen2" component={Register} options={{ tabBarLabel: "Profile" }} />
       </Tab.Navigator>

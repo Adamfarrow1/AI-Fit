@@ -10,7 +10,7 @@ export default function Home(){
     console.log(user);
   return (
       <View style={styles.container}>
-            <Text>Welcome: {user.userName}</Text>
+            <Text style={styles.title}>Welcome: {user.userName}</Text>
       </View>
   );
 };
@@ -20,12 +20,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // Background color
+    backgroundColor: '#201a30', // Background color
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: 'white',
   },
   subtitle: {
     fontSize: 18,

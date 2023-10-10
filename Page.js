@@ -15,7 +15,7 @@ const Page = () => {
         <View style={styles.container}>
         <NavigationContainer>
             { user ? (
-            <Stack.Navigator>
+            <Stack.Navigator screenOptions={{headerShown:false}}>
               <Stack.Screen name="Home" component={Home} />
             </Stack.Navigator> )
             :
