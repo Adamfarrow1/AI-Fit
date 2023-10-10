@@ -25,11 +25,12 @@ export default function Login() {
   const handleLogin = async () => {
     console.log(username + ' ' + password)
     try {
+      if(!username || !password) return
       const response = await axios.post('http://10.127.130.59:3000/login', {
         userName: username,
         password: password,
       });
-      
+
       login({
         userName: username,
         password: password,

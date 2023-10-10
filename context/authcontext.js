@@ -1,5 +1,5 @@
 // AuthContext.js
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -8,7 +8,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+    const [user, setUser] = useState(null);
 
   const login = (userData) => {
     // Perform authentication logic and set the user if successful
@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     // Clear user data to log out
-    setUser(null);
+    setUser({});
   };
 
   return (

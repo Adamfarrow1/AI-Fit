@@ -1,21 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet,Button } from 'react-native';
-
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Dashboard from './Dashboard'
-import Register from './Register';
-
 import { useAuth } from '../context/authcontext';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
 const Tab = createBottomTabNavigator();
 
 export default function Home(){
     const { user, login } = useAuth();
     console.log(user);
   return (
-      <Tab.Navigator initialRouteName='Home'>
-        <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home" }} />
-        <Tab.Screen name="Screen2" component={Register} options={{ tabBarLabel: "Profile" }} />
-      </Tab.Navigator>
+      <View style={styles.container}>
+            <Text>Welcome: {user.userName}</Text>
+      </View>
   );
 };
 

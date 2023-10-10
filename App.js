@@ -1,47 +1,22 @@
-import React, { Component, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Login from './components/Login'; // Adjust the import path as needed
+import Login from './components/Login';
 import Register from './components/Register';
-import { AuthProvider } from './context/authcontext';
 import Home from './components/Homepage';
+import Page from './Page';
 
-import axios from 'axios';
-
+import { AuthProvider } from './context/authcontext'; // Import AuthProvider
 
 const Stack = createStackNavigator();
+
 export default function App() {
-  // Replace with your server's IP or hostname
-const serverURL = 'http://10.127.130.59:3000';
-
-useEffect(() => {
-  // Make the GET request to your server.
-  axios
-    .get(`${serverURL}/getData/adam`)
-    .then((response) => {
-      // Handle the response data here.
-      console.log(response.data);
-    })
-    .catch((error) => {
-      console.error('API request error:', error);
-    });
-}, []);
-
-
-return (
   
-    <View style={styles.container}>
-        <AuthProvider>
-          <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="Register" component={Register} />
-            <Stack.Screen name="Home" component={Home} />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </AuthProvider>
-    </View>
+  return (
+    <AuthProvider>
+      <Page></Page>
+    </AuthProvider>
   );
 }
 
