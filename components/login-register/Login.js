@@ -22,6 +22,8 @@ export default function Login() {
   const [type, setType] = useState(true);
   const { user, login } = useAuth();
 
+  const [text , setText] = useState('Welcome to Fit AI');
+
   const handleLogin = async () => {
     console.log(username + ' ' + password)
     try {
@@ -52,7 +54,12 @@ export default function Login() {
 
   const handleTypewriter = () => {
     setTimeout(() => {
-      setType((prevType) => !prevType);
+      if(text === 'Welcome to Fit AI'){
+        setText('Become Fit Today.');
+      }
+      else{
+        setText('Welcome to Fit AI');
+      }
     }, 2500); // Delay in milliseconds (adjust as needed)
   };
 
@@ -68,21 +75,16 @@ export default function Login() {
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
+      
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.spacing}>
           <View style={styles.helloWorldContainer}>
-            {type ? (
-              <TypeWriter fixed={true} onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
-                Welcome to Fit AI
+            <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
+                {text}
               </TypeWriter>
-            ) : (
-              <TypeWriter fixed={true} onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
-                Become Fit Today.
-              </TypeWriter>
-            )}
           </View>
 
           <View style={styles.center}>
@@ -90,6 +92,7 @@ export default function Login() {
               style={styles.input}
               placeholderTextColor="#6b6776"
               placeholder="Username"
+              textContentType="oneTimeCode"
               value={username}
               onChangeText={(text) => setUsername(text)}
             />
@@ -97,6 +100,7 @@ export default function Login() {
               style={styles.input}
               placeholder="Password"
               secureTextEntry={true}
+              textContentType="oneTimeCode"
               placeholderTextColor="#6b6776"
               value={password}
               onChangeText={(text) => setPassword(text)}
@@ -153,6 +157,7 @@ const styles = StyleSheet.create({
   textcolor: {
     color: 'aqua',
     fontSize: 30,
+    height: 50,
   },
   spacing: {
     justifyContent: 'space-between',

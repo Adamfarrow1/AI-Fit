@@ -4,6 +4,7 @@ import { useAuth } from '../../context/authcontext';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 
+
 const Tab = createBottomTabNavigator();
 
 export default function Home(){
@@ -21,13 +22,12 @@ export default function Home(){
           <Text style={styles.title}>Progress</Text>
           <View style={styles.background}>
               <Text style={styles.text}>Welcome: {user ? user.userName : ''} add progress tracker here</Text>
-              <Button title="Logout" onPress={handleLogout} color="white" />
             </View>
           </View>
         <View style={styles.sectioncontainer}>
           <Text style={styles.title}>Supplements</Text>
           <View style={styles.background}>
-              <Text style={styles.title}>add supplements here</Text>
+              <Text style={styles.text}>add supplements here</Text>
             </View>
         </View>
       </View>
@@ -51,6 +51,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     color: 'white',
+    marginRight: 10,
+    marginLeft: 10
   },
   subtitle: {
     fontSize: 18,
