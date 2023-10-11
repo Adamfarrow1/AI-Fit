@@ -13,7 +13,7 @@ export default function Home(){
     const { user, login } = useAuth();
     console.log(user);
   return (
-      <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false}}>
+      <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false,tabBarStyle: {backgroundColor: '#161618',borderTopWidth: 0}}}>
         <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home" }} />
         <Tab.Screen name="Screen2" component={Workouts} options={{ tabBarLabel: "Workouts" }} />
         <Tab.Screen name="Screen3" component={Mealplans} options={{ tabBarLabel: "Meal plans" }} />
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // Background color
+    backgroundColor: 'black', // Background color
   },
   title: {
     fontSize: 24,
