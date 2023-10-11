@@ -1,20 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
 import { useAuth } from '../../context/authcontext';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 
 export default function Home(){
-    const { user, login } = useAuth();
+    const { user, logout } = useAuth();
+    const navigation = useNavigation();
+
+    const handleLogout = () =>{
+      logout();
+
+    }
     console.log(user);
   return (
       <View style={styles.container}>
         <View style={styles.sectioncontainer}>
           <Text style={styles.title}>Progress</Text>
           <View style={styles.background}>
-              <Text style={styles.text}>Welcome: {user.userName} add progress tracker here</Text>
-
+              <Text style={styles.text}>Welcome: {user ? user.userName : ''} add progress tracker here</Text>
+              <Button title="Logout" onPress={handleLogout} color="white" />
             </View>
           </View>
         <View style={styles.sectioncontainer}>

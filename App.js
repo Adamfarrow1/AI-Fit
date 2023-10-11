@@ -11,9 +11,11 @@ const Stack = createStackNavigator();
 export default function App() {
   
   return (
-    <AuthProvider>
-      <Page></Page>
-    </AuthProvider>
+    <NavigationContainer>
+      <AuthProvider>
+        <Page></Page>
+      </AuthProvider>
+    </NavigationContainer>
   );
 }
 

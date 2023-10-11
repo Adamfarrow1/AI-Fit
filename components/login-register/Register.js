@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
+import Login from './Login';
 
 export default function Register() {
   const [step, setStep] = useState(1); // To keep track of the current step
@@ -29,6 +30,15 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const height = `${heightFeet}'${heightInches}"`;
   const navigation = useNavigation();
+
+  const [res , setRes] = useState('');
+
+
+  function delay() {
+    setTimeout(() => {
+      
+    }, 3000); // 3000 milliseconds = 3 seconds
+  }
 
 
 
@@ -55,21 +65,36 @@ export default function Register() {
         console.log('User register successful');
         setUsername('');
         setPassword('');
+        setRes("successfully registered")
+        delay();
         // Optionally, you can navigate to another screen after successful login
         // navigation.navigate('SuccessScreen');
       }
     } catch (error) {
+      setRes("Error registering user")
       console.error('Error registering user:', error.message);
       console.error('Stack trace:', error.stack);
     }
   };
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true, // Hide the navigation header
+    });
+  }, [navigation]);
 
 
 
   const dismissKeyboard = () => {
     Keyboard.dismiss(); // Dismiss the keyboard when the screen is tapped
   };
+
+
+  const handleBack = () => {
+    setStep(step - 1)
+  }
+
+
 
   const advanceStep = () => {
     if (step < 9) {
@@ -79,6 +104,7 @@ export default function Register() {
       console.log('Full Registration Details:', {
         fullName, email, age, gender, weight, height, goal, username, password
       });
+      navigation.navigate('Login')
       // Implement additional registration logic here if needed
     }
   };
@@ -177,6 +203,7 @@ export default function Register() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        
         <View style={styles.spacing}>
           <Text style={styles.textcolor}>{getQuestionText()}</Text>
           <View style={styles.center}>
@@ -184,9 +211,14 @@ export default function Register() {
             <View style={styles.button}>
               <TouchableOpacity onPress={advanceStep} style={styles.fullWidthButton}>
                 <Text style={styles.buttonText}>Next</Text>
+                
               </TouchableOpacity>
+             
             </View>
+            
           </View>
+          {step > 1 ? ( <Button style={styles.backbtn} onPress={handleBack} title="Back" color="#6b6776" />) : null}
+          <Text style={styles.textcolor}>{res}</Text>
         </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
@@ -199,16 +231,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#161618',
-  },
-  input: {
-    width: 300,
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 20,
-    borderRadius: 12,
-    paddingLeft: 10,
-    color: 'black',
   },
 
   heightContainer: {
