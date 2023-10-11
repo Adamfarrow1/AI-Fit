@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
-import { useAuth } from '../context/authcontext';
+import { useAuth } from '../../context/authcontext';
 
 
 export default function Login() {

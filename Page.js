@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Login from './components/Login';
-import Register from './components/Register';
-import Home from './components/Homepage';
+import Login from './components/login-register/Login';
+import Register from './components/login-register/Register';
+import Home from './components/homepage/Homepage';
 
 import { AuthProvider ,useAuth } from './context/authcontext'; 
 

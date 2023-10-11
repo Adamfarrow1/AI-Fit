@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet,Button } from 'react-native';
-import { useAuth } from '../context/authcontext';
+import { useAuth } from '../../context/authcontext';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 const Tab = createBottomTabNavigator();

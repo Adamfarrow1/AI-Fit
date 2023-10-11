@@ -2,9 +2,6 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Login from './components/Login';
-import Register from './components/Register';
-import Home from './components/Homepage';
 import Page from './Page';
 
 import { AuthProvider } from './context/authcontext'; // Import AuthProvider

@@ -3,9 +3,10 @@ import { View, Text, StyleSheet,Button } from 'react-native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Dashboard from './Dashboard'
-import Register from './Register';
+import Mealplans from '../mealplans/Mealplans'
+import Workouts from '../workouts/Workouts';
 
-import { useAuth } from '../context/authcontext';
+import { useAuth } from '../../context/authcontext';
 const Tab = createBottomTabNavigator();
 
 export default function Home(){
@@ -14,7 +15,8 @@ export default function Home(){
   return (
       <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false}}>
         <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home" }} />
-        <Tab.Screen name="Screen2" component={Register} options={{ tabBarLabel: "Profile" }} />
+        <Tab.Screen name="Screen2" component={Workouts} options={{ tabBarLabel: "Workouts" }} />
+        <Tab.Screen name="Screen3" component={Mealplans} options={{ tabBarLabel: "Meal plans" }} />
       </Tab.Navigator>
   );
 };
