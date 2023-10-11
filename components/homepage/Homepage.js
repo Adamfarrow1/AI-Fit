@@ -6,6 +6,9 @@ import Dashboard from './Dashboard'
 import Mealplans from '../mealplans/Mealplans'
 import Workouts from '../workouts/Workouts';
 
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { useAuth } from '../../context/authcontext';
 const Tab = createBottomTabNavigator();
 
@@ -14,9 +17,15 @@ export default function Home(){
     console.log(user);
   return (
       <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false,tabBarStyle: {backgroundColor: '#161618',borderTopWidth: 0}}}>
-        <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home" }} />
-        <Tab.Screen name="Screen2" component={Workouts} options={{ tabBarLabel: "Workouts" }} />
-        <Tab.Screen name="Screen3" component={Mealplans} options={{ tabBarLabel: "Meal plans" }} />
+        <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home", tabBarIcon: ({ color, size }) => (
+        <Ionicons name="home" color={color} size={size} />
+      ), }} />
+        <Tab.Screen name="Screen2" component={Workouts} options={{ tabBarLabel: "Workouts",tabBarIcon: ({ color, size }) => (
+        <MaterialCommunityIcons name="weight-lifter" size={size} color={color} />
+      ), }} />
+        <Tab.Screen name="Screen3" component={Mealplans} options={{ tabBarLabel: "Meal plans",tabBarIcon: ({ color, size }) => (
+        <MaterialCommunityIcons name="food-apple-outline" size={size} color={color} />
+      ), }} />
       </Tab.Navigator>
   );
 };
