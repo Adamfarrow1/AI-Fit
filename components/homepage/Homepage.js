@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet,Button } from 'react-native';
+import { View, Text, StyleSheet, Button, Dimensions } from 'react-native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Dashboard from './Dashboard'
@@ -40,6 +40,8 @@ export default function Home(){
       </Tab.Navigator>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {
