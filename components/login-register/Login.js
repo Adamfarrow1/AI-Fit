@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
 import { useAuth } from '../../context/authcontext';
-
+// import {OPENAI_API_KEY} from 'react-native-dotenv'
 
 export default function Login() {
   const navigation = useNavigation();
@@ -28,7 +28,7 @@ export default function Login() {
     console.log(username + ' ' + password)
     try {
       if(!username || !password) return
-      const response = await axios.post('http://172.20.10.3:3000/login', {
+      const response = await axios.post('http://10.127.130.59:3000/login', {
         userName: username,
         password: password,
       });
@@ -37,7 +37,8 @@ export default function Login() {
         userName: username,
         password: password,
       });
-
+      console.log("hi")
+      // console.log(OPENAI_API_KEY)
 
       if (response.data.message === 'Login successful') {
         console.log('User login successful');
