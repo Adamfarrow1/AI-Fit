@@ -1,14 +1,94 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Easing, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Easing, ScrollView,Button } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
+import {OPENAI_API_KEY} from 'react-native-dotenv'
 
 export default function Workouts({ navigation }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const caloriesConsumed = 600;
   const totalCaloriesNeeded = 1800;
   const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded) * 100);
+  const [mealsData, setMealsData] = useState([]);
+
+  const parseMeals = (mealString) => {
+    if (!mealString) {
+      console.error('mealString is undefined or empty');
+      return [];
+    }
+  
+    const mealSections = mealString.split('\n');
+    const meals = [];
+    let currentMeal = null;
+  
+    for (const section of mealSections) {
+      if (section.trim() !== '') {
+        const [label, ...rest] = section.split(': ');
+  
+        if (label && rest) {
+          const sectionText = rest.join(': ');
+          if (label === 'Breakfast' || label === 'Lunch' || label === 'Dinner') {
+            currentMeal = { mealName: label, foods: [] };
+            meals.push(currentMeal);
+          }
+          if (currentMeal) {
+            const [foodName, foodCalories] = sectionText.split(': ');
+            if (foodName && foodCalories) {
+              currentMeal.foods.push({ name: foodName, calories: foodCalories });
+            } else {
+              console.error('Incomplete food information found');
+            }
+          }
+        } else {
+          console.error('Incomplete meal information found');
+        }
+      }
+    }
+  
+    setMealsData(meals);
+    console.log('Parsing successful');
+    console.log("meals so far:" + JSON.stringify(meals, null, 2));
+    return meals;
+  };
+  
+  
+  
+  const getPlans = async () => {
+    try {
+      const res = await fetch('https://api.openai.com/v1/completions', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "text-davinci-003",
+          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so: Breakfast: Eggs with toast: 600 calories: 2 scrambled eggs with 1/4 cup...",
+          max_tokens: 300,
+          temperature: 0,
+        }),
+      });
+  
+      if (res.ok) {
+        const responseJson = await res.json();
+        console.log(responseJson.choices[0].text);
+        parseMeals(responseJson.choices[0].text.toString());
+        
+      } else {
+        console.error('Failed to fetch data');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
+
+
+
+
+
 
   const daysOfWeek = [
     { label: 'Mon', value: 1 },
@@ -65,6 +145,7 @@ export default function Workouts({ navigation }) {
           )
         }
       </AnimatedCircularProgress>
+      <Button title="Test" onPress={() => {getPlans()}} color="#6b6776" />
       <Text style={styles.title}>Select a day</Text>
       <View style={styles.daysContainer}>
         {daysOfWeek.map((day) => (
@@ -89,138 +170,34 @@ export default function Workouts({ navigation }) {
       </View>
 
       <ScrollView style={styles.viewbg}>
-        {/* Food options go here */}
-        <View>
-          <Text style={styles.sectionTitle}>Breakfast:</Text>
-          
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Cereal</Text>
-                <Text style={styles.foodsubTitle}>Calories: 900</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
+      <View>
+  {mealsData.map((meal, index) => (
+    <View key={index}>
+      <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
+      
+      {meal.foods.map((food, foodIndex) => (
+        <View style={styles.foodContainer} key={foodIndex}>
+          <View>
+            <Text style={styles.foodTitle}>{food.name}</Text>
+            <Text style={styles.foodsubTitle}>{food.calories}</Text>
           </View>
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Toast</Text>
-                <Text style={styles.foodsubTitle}>Calories: 600</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.details}>Details</Text>
+            <MaterialIcons
+              style={{ marginRight: 5 }}
+              name="arrow-forward-ios"
+              size={16}
+              color="white"
+            />
           </View>
-
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Oatmeal</Text>
-                <Text style={styles.foodsubTitle}>Calories: 450</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-
         </View>
+      ))}
+    </View>
+  ))}
+</View>
 
 
-
-
-
-        <View>
-          <Text style={styles.sectionTitle}>Lunch:</Text>
-          
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-
-        </View>
-
-
-
-
-
-
-        <View>
-          <Text style={styles.sectionTitle}>Dinner:</Text>
-          
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-
-          <View style={styles.foodContainer}>
-              <View>
-                <Text style={styles.foodTitle}>Lazagna</Text>
-                <Text style={styles.foodsubTitle}>Calories: 1620</Text>
-              </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.details}>Details</Text>
-                <MaterialIcons style={{marginRight: 5}} name="arrow-forward-ios" size={16} color="white" />
-              </View>
-          </View>
-
-
-        </View>
-
-
-      </ScrollView>
+</ScrollView>
     </View>
   );
 }

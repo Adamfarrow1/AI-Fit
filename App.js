@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Page from './Page';
 
+
+
 import { AuthProvider } from './context/authcontext'; // Import AuthProvider
 
 const Stack = createStackNavigator();
@@ -11,11 +13,13 @@ const Stack = createStackNavigator();
 export default function App() {
   
   return (
-    <NavigationContainer>
-      <AuthProvider>
-        <Page></Page>
-      </AuthProvider>
-    </NavigationContainer>
+
+      <NavigationContainer>
+        <AuthProvider>
+          <Page></Page>
+        </AuthProvider>
+      </NavigationContainer>
+
   );
 }
 
