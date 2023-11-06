@@ -65,9 +65,9 @@ export default function Workouts({ navigation }) {
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so: Breakfast: Eggs with toast: 600 calories: 2 scrambled eggs with 1/4 cup...",
+          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)",
           max_tokens: 300,
-          temperature: 0,
+          temperature: 1,
         }),
       });
   
