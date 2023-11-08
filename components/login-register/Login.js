@@ -34,11 +34,8 @@ export default function Login() {
         userName: username,
         password: password,
       });
-
-      login({
-        userName: username,
-        password: password,
-      });
+      console.log(response.data);
+      login(response.data.user);
 
 
     

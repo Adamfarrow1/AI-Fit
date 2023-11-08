@@ -4,13 +4,60 @@ import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv'
+import { useAuth } from '../../context/authcontext';
+import axios from 'axios';
 
 export default function Workouts({ navigation }) {
   const [selectedDay, setSelectedDay] = useState(null);
-  const caloriesConsumed = 600;
-  const totalCaloriesNeeded = 1800;
+  const [caloriesConsumed, setCaloriesConsumed] = useState(0);
+  const [totalCaloriesNeeded, setTotalCal] = useState(1800);
   const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded) * 100);
   const [mealsData, setMealsData] = useState([]);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // You can access the updated caloriesConsumed value here
+    console.log('Calories Consumed:', caloriesConsumed);
+  }, [caloriesConsumed]);
+
+
+  
+
+  const updateMeals = async (mealsData) => {
+    try {
+      console.log(user._id);
+      const response = await axios.post('http://10.127.130.59:3000/meals', {
+        mealsData: mealsData,
+        uuid: user._id
+      });
+
+      console.log(response);
+    } catch (error) {
+      console.error('Error meal:', error);
+    }
+  };
+
+
+
+  function extractNumberFromStringAsInteger(inputString) {
+    // Use a regular expression to match and extract the number
+    const match = inputString.match(/\d+/);
+  
+    // Check if a match is found
+    if (match) {
+      const number = parseInt(match[0], 10); // Parse the matched number as an integer
+      setCaloriesConsumed(prevCaloriesConsumed => prevCaloriesConsumed + number);
+      return number;
+    } else {
+      return null; // Return null (or another appropriate value) when no number is found
+    }
+  }
+
+
+
+
+
+
 
   const parseMeals = (mealString) => {
     if (!mealString) {
@@ -33,9 +80,10 @@ export default function Workouts({ navigation }) {
             meals.push(currentMeal);
           }
           if (currentMeal) {
-            const [foodName, foodCalories] = sectionText.split(': ');
+            const [foodName, foodCalories, foodIngredients] = sectionText.split(': ');
             if (foodName && foodCalories) {
-              currentMeal.foods.push({ name: foodName, calories: foodCalories });
+              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients });
+              extractNumberFromStringAsInteger(foodCalories);
             } else {
               console.error('Incomplete food information found');
             }
@@ -72,7 +120,9 @@ export default function Workouts({ navigation }) {
       });
   
       if (res.ok) {
+        
         const responseJson = await res.json();
+        updateMeals(responseJson.choices[0].text.toString());
         console.log(responseJson.choices[0].text);
         parseMeals(responseJson.choices[0].text.toString());
         
