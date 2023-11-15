@@ -5,6 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from './components/login-register/Login';
 import Register from './components/login-register/Register';
 import Home from './components/homepage/Homepage';
+import WorkoutDetailScreen from './components/workouts/WorkoutDetailScreen';
+import Workouts from './components/workouts/Workouts';
 import { useAuth } from './context/authcontext';
 
 const Stack = createStackNavigator();
@@ -33,9 +35,17 @@ const Page = () => {
           headerTintColor: 'white',
         }}
       >
+
         <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" options={{ gestureEnabled: false }} component={Home} />
+        <Stack.Screen name="Workouts"  component={Workouts} />
+        <Stack.Screen 
+          name="WorkoutDetailScreen" 
+          component={WorkoutDetailScreen} 
+          options={{ headerShown: false }}  // Add this line
+        />
+
       </Stack.Navigator>
     </View>
   );
