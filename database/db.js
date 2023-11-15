@@ -66,18 +66,6 @@ const WorkoutGroupModel = mongoose.model('WorkoutGroup', workoutGroupSchema);
 module.exports = WorkoutGroupModel;
 
 
-app.get('/getWorkouts/:category', async (req, res) => {
-  try {
-    const category = req.params.category;
-    const workoutGroups = await WorkoutGroupModel.find({"groupName": category});
-    res.json(workoutGroups);
-  } catch (error) {
-    console.error('Error retrieving workouts:', error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-
 
 app.post('/addWorkoutGroup', async (req, res) => {
   try {
@@ -101,17 +89,6 @@ app.post('/addWorkoutGroup', async (req, res) => {
 });
 
 
-app.post('/addWorkout', async (req, res) => {
-  try {
-    const newWorkout = new WorkoutModel(req.body);
-    await newWorkout.save();
-    res.json({ message: 'Workout added successfully' });
-  } catch (error) {
-    console.error('Error adding workout:', error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
 
 app.get('/getWorkoutGroup/:groupName', async (req, res) => {
   try {
@@ -128,6 +105,35 @@ app.get('/getWorkoutGroup/:groupName', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while retrieving the workout group' });
   }
 });
+
+app.get('/getWorkoutGroups', async (req, res) => {
+  try {
+    // Fetch all workout groups from the database
+    const workoutGroups = await WorkoutGroupModel.find({});
+    res.json({ workoutGroups });
+  } catch (error) {
+    console.error('Error fetching workout groups:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the workout groups' });
+  }
+});
+
+
+app.get('/getWorkoutNames', async (req, res) => {
+  try {
+    // Fetch only the groupName field from all workout groups in the database
+    const workoutGroups = await WorkoutGroupModel.find({}, 'groupName');
+
+    // Extract the groupName from each workout group
+    const workoutGroupNames = workoutGroups.map(group => group.groupName);
+
+    res.json({ workoutGroupNames });
+  } catch (error) {
+    console.error('Error fetching workout group names:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the workout group names' });
+  }
+});
+
+
 
 
 
