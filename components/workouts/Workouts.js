@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated } from 'react-native';
 import { Circle, Svg } from 'react-native-svg';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import WorkoutDetailScreen from './WorkoutDetailScreen';
 import axios from 'axios';
 
 
@@ -8,13 +10,31 @@ import axios from 'axios';
 
 
 export default function Workouts() {
+
+  const navigation = useNavigation();
   
   // State and Refs
   const [progress, setProgress] = useState(0.6); // Example: 60% progress
   const animatedValue = useRef(new Animated.Value(0)).current;
   const circleCircumference = 2 * Math.PI * 40; 
   const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-  const [selectedWorkouts, setSelectedWorkouts] = useState([]);
+  const [workoutGroups, setWorkoutGroups] = useState([]);
+  
+
+
+
+  const routes = useRoute();
+
+  const { params } = routes;
+  
+
+
+  useEffect(() => {
+      if (routes.params?.workoutCompleted) {
+        const completedDay = routes.params.completedDay;
+        setWorkoutDays(prevDays => ({ ...prevDays, [completedDay]: true }));
+      }
+    }, [routes.params?.workoutCompleted, routes.params?.completedDay]);
 
 
 
@@ -36,10 +56,15 @@ export default function Workouts() {
     }).start();
   }, []);
 
+
+
   // Day progress
   const toggleDay = (day) => {
       setWorkoutDays(prevState => ({ ...prevState, [day]: !prevState[day] }));
   };
+
+  
+
   const [workoutDays, setWorkoutDays] = useState({
     'M': false,
     'T': false,
@@ -47,25 +72,31 @@ export default function Workouts() {
     'Th': false,
     'F': false,
     'S': false,
-    'Su': false
+    'Su': false,
   });
 
+ 
 
-  // Workout categories
-  const categories = [
-    "Strength Training",
-    "Cardio",
-    "Flexibility",
-    "Yoga",
-    "Pilates",
-    "HIIT",
-    "CrossFit",
-    "Aerobics",
-    "Martial Arts"
-  ];
+
+
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
+
+  
+
+
+  const navigateToWorkoutDetail = (workoutGroup) => {
+    console.log('navigateToWorkoutDetail called with:', workoutGroup);
+  
+    if (navigation && workoutGroup) {
+      console.log('Navigating to WorkoutDetailScreen with:', workoutGroup);
+      navigation.navigate('WorkoutDetailScreen', { workoutGroup });
+    } else {
+      console.error('Navigation error: navigation object or workoutGroup is undefined');
+    }
+  };
+  
 
 
 
@@ -73,14 +104,21 @@ export default function Workouts() {
   // WORKOUT PROGRAMS ---------------------------------------------------------------------------------------
   
   // Get the information from the database
-  const fetchWorkouts = async (category) => {
+  const fetchWorkoutGroups = async () => {
     try {
-      const response = await axios.get(`http://your-api-endpoint/getWorkouts/${category}`);
-      setSelectedWorkouts(response.data.workouts); // Assuming response.data.workouts is an array of workout objects
+      const response = await axios.get(`http://localhost:3000/getWorkoutGroups`);
+      setWorkoutGroups(response.data.workoutGroups); 
+
     } catch (error) {
-      console.error('Error fetching workouts:', error);
+      console.error('Error fetching workout groups:', error);
     }
   };
+
+  useEffect(() => {
+    fetchWorkoutGroups();
+  }, []);
+
+  
 
 
   const renderCategory = ({ item, index }) => {
@@ -97,31 +135,24 @@ export default function Workouts() {
     });
   
     return (
-      <View style={styles.container}>
-    
-        {/* Workout Categories (Inside scroll bar)*/}
-        <View style={styles.categories}>
-          <Text style={styles.subtitle}>Your custom workout:</Text>
-          <Animated.FlatList
-            data={categories}
-            keyExtractor={(item) => item}
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
-            )}
-            scrollEventThrottle={16}
-          />
-        </View>
-    
-        
-  
-    
-      </View>
+      <TouchableOpacity 
+        style={styles.categoryItem} 
+        onPress={() => navigateToWorkoutDetail(item)}// Passes the entire workout the user selected
+      >
+        <Animated.View style={{ opacity, transform: [{ scale }] }}>
+          <Text style={styles.categoryText}>{item.groupName}</Text>
+        </Animated.View>
+      </TouchableOpacity>
     );
-    
   };
 
+  
 
+  const route = useRoute();
+  const workoutCompleted = route.params?.workoutCompleted;
+
+
+  
 
 
 
@@ -174,13 +205,13 @@ export default function Workouts() {
 
 
 
-      {/* Workout Categories */}
-      <View style={styles.categoriesBox}>
+       {/* Updated Workout Categories */}
+       <View style={styles.categoriesBox}>
         <Text style={styles.subtitle}>Your custom workouts:</Text>
         <Animated.FlatList
-          data={categories}
+          data={workoutGroups}
           keyExtractor={(item) => item}
-          renderItem={renderCategory}
+          renderItem={renderCategory} // Use the updated renderCategory function
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
             { useNativeDriver: true }
@@ -192,9 +223,10 @@ export default function Workouts() {
 
 
 
+
       {/* Workout Days */}
       <View style={styles.plansBox}>
-        <Text style={styles.subtitle}>Week's Workouts</Text>
+        <Text style={styles.subtitle}>This Week's Progress</Text>
         <View style={styles.weekContainer}>
           {Object.keys(workoutDays).map(day => (
             <TouchableOpacity key={day} onPress={() => toggleDay(day)} style={styles.dayButton}>
@@ -334,5 +366,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#999',
     marginTop: 20,
-  }
+  },
+  categoryItem: {
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: 'grey',
+    borderRadius: 10,
+  },
+  categoryText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+    textAlign: 'center'
+  },
 });
