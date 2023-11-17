@@ -46,7 +46,7 @@ export default function Register() {
     try {
       console.log('Attempting to create user');
       const height = `${heightFeet}'${heightInches}"`;
-      const response = await axios.post('http://10.127.130.59:3000/registerUser', {
+      const response = await axios.post('http://192.168.1.178:3000/registerUser', {
         userName: username,
         password: password,
         fullName: fullName,
