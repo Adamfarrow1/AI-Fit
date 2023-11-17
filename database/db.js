@@ -30,7 +30,21 @@ const userSchema = new mongoose.Schema({
       weight: String,
       height: String,
       goal: String,
+      workoutHistory: [{
+        date: Date,
+        workouts: String,
+      }],
 });
+
+const deleteOldWorkouts = async () => {
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  await UserModel.updateMany(
+    {},
+    { $pull: { workoutHistory: { date: { $lt: oneMonthAgo } } } }
+  );
+};
 
 const workoutSchema = new mongoose.Schema({
   name: String,
@@ -65,6 +79,52 @@ const WorkoutGroupModel = mongoose.model('WorkoutGroup', workoutGroupSchema);
 
 module.exports = WorkoutGroupModel;
 
+app.post('/user/:userId/recordWorkout', async (req, res) => {
+  try {
+      const { userId } = req.params;
+      const { date, workouts } = req.body;
+
+      // Correctly converting userId to ObjectId
+      const objectId = new mongoose.Types.ObjectId(userId);
+
+      // Find the user and update their workout history
+      const updatedUser = await UserModel.findByIdAndUpdate(
+          objectId,
+          { $push: { workoutHistory: { date, workouts } } },
+          { new: true } // Return the updated document
+      );
+
+      if (!updatedUser) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(200).json({ message: 'Workout recorded successfully', updatedUser });
+  } catch (error) {
+      console.error('Error recording workout:', error);
+      res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+
+
+
+
+
+
+// TRIES TO GET USER ID 
+app.get('/user/:userId/workoutHistory', async (req, res) => {
+  const { userId } = req.params;
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+  console.log("working");
+
+  const user = await UserModel.findById(userId).populate('workoutHistory.workouts');
+  const recentWorkouts = user.workoutHistory.filter(w => w.date >= oneMonthAgo);
+
+  res.json({ recentWorkouts });
+});
 
 
 app.post('/addWorkoutGroup', async (req, res) => {
