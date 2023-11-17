@@ -232,6 +232,7 @@ export default function Workouts() {
 
 
 
+
        {/* Updated Workout Categories */}
        <View style={styles.categoriesBox}>
         <Text style={styles.subtitle}>Your custom workouts:</Text>
@@ -314,9 +315,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a'
   },
   categoriesBox: {
-    flex: 3,
+    flex: 1.9,
     marginBottom: 20,
-    padding: 20,
+    marginTop: 20,
+    padding: 30,
     borderRadius: 10,
     backgroundColor: '#1a1a1a'
   },
@@ -411,11 +413,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 20,
     padding: 20,
-    margin: 10,
-    borderRadius: 15,
-    backgroundColor: '#262626', // Dark theme color
+    margin: 4,
+    borderRadius: 10,
+    backgroundColor: '#1a1a1a', // Dark theme color
     shadowColor: '#000',
     shadowOffset: {
     width: 0,
