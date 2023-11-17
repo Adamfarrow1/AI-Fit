@@ -241,6 +241,10 @@ app.post('/login', async (req, res) => {
 // this part of the code is for the meal plans
 const mealSchema = new mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
+  date: {
+    type: Date,
+    default: Date.now, // Set the default value to the current date
+  },
   meals: [
     {
       mealName: String,
@@ -254,6 +258,9 @@ const mealSchema = new mongoose.Schema({
     }
   ]
 });
+
+
+
 const Meal = mongoose.model('Meal', mealSchema);
 app.post('/meals', async (req, res) => {
   try {
@@ -265,20 +272,67 @@ app.post('/meals', async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    // Create a new Meal document
-    const newMeal = new Meal({
-      _id: userId, // Use the user's _id as the _id
-      meals: mealsData, // Store it as a JavaScript object
-    });
-    // Save the new Meal document to the "Meal" collection
-    await newMeal.save();
-    console.log('Meals added to the Meal collection successfully.');
-    res.json({ message: 'Meals added to the Meal collection successfully' });
+
+    // Get the current date
+    const currentDate = new Date();
+
+    // Check if a meal with the specified userId already exists
+    const existingMeal = await Meal.findOne({ _id: userId });
+
+    if (existingMeal) {
+      // If a meal exists, update the mealsData and date
+      await Meal.updateOne({ _id: userId }, { meals: mealsData, date: currentDate });
+      console.log('Meals updated in the Meal collection successfully.');
+      res.json({ message: 'Meals updated in the Meal collection successfully' });
+    } else {
+      // If a meal does not exist, create a new Meal document with the current date
+      const newMeal = new Meal({
+        _id: userId, // Use the user's _id as the _id
+        meals: mealsData, // Store it as a JavaScript object
+        date: currentDate,
+      });
+      // Save the new Meal document to the "Meal" collection
+      await newMeal.save();
+      console.log('Meals added to the Meal collection successfully.');
+      res.json({ message: 'Meals added to the Meal collection successfully' });
+    }
   } catch (error) {
-    console.error('Error adding meals to the Meal collection:', error);
+    console.error('Error adding/updating meals to the Meal collection:', error);
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
+
+app.post('/updateMeals', async (req, res) => {
+  try {
+    const { _id } = req.body;
+
+    // Check if _id is provided in the request body
+    if (!_id) {
+      return res.status(400).json({ error: 'Missing _id in the request body' });
+    }
+
+    // Convert the provided _id (string) to a mongoose ObjectId
+    const userId = new mongoose.Types.ObjectId(_id);
+
+    // Find the user by _id
+    const user = await Meal.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Continue with any additional logic for updating meals or processing the user
+
+    res.json({ user }); // Send the user details as the response
+
+   
+  } catch (error) {
+    console.error('Error adding/updating meals to the Meal collection:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
 
 
 

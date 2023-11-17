@@ -11,13 +11,21 @@ export default function Workouts({ navigation }) {
   const [selectedDay, setSelectedDay] = useState(null);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
   const [totalCaloriesNeeded, setTotalCal] = useState(1800);
-  const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded) * 100);
+  const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100);
   const [mealsData, setMealsData] = useState([]);
   const { user } = useAuth();
+
+
+  const circularProgressRef = useRef(null);
+
 
   useEffect(() => {
     // You can access the updated caloriesConsumed value here
     console.log('Calories Consumed:', caloriesConsumed);
+    setCaloriesRatio((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100)
+    console.log('Calories Ratio :', caloriesRatio);
+    // circularProgressRef.current.animate(0, 0, Easing.quad);
+    circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
   }, [caloriesConsumed]);
 
 
@@ -25,10 +33,11 @@ export default function Workouts({ navigation }) {
 
   const updateMeals = async (mealsData) => {
     try {
-      console.log(user._id);
-      const response = await axios.post('http://10.127.130.59:3000/meals', {
+      console.log("meals data:::::")
+      console.log(JSON.stringify(mealsData, null, 2));
+      const response = await axios.post('http://10.127.130.59:3000/updateMeals', {
         mealsData: mealsData,
-        uuid: user._id
+        _id: user._id
       });
 
       console.log(response);
@@ -36,6 +45,36 @@ export default function Workouts({ navigation }) {
       console.error('Error meal:', error);
     }
   };
+
+
+  const getMeals = async () =>{
+    try{
+      const response = await axios.post('http://10.127.130.59:3000/updateMeals', {
+        _id: user._id
+      });
+      console.log("geting meals now------------------------------")
+      console.log(response.data.user.meals);
+      const today = new Date();
+      const mealday = new Date(response.data.user.date)
+      if(mealday.getDate() !== today.getDate()){
+        getPlans();
+
+      }
+      else{
+        setMealsData(response.data.user.meals);
+        extractNumberFromStringAsInteger(response.data.user.meals[0].foods[0].calories)
+        extractNumberFromStringAsInteger(response.data.user.meals[1].foods[0].calories)
+        extractNumberFromStringAsInteger(response.data.user.meals[2].foods[0].calories)
+        // circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
+        // console.log("kcal rn" )
+        // console.log(caloriesRatio)
+      }
+    }
+    catch(e){
+      getPlans();
+      console.error("error fetching meals:", e)
+    }
+  }
 
 
 
@@ -71,7 +110,7 @@ export default function Workouts({ navigation }) {
   
     for (const section of mealSections) {
       if (section.trim() !== '') {
-        const [label, ...rest] = section.split(': ');
+        const [label, ...rest] = section.split(/: |-|\(/);
   
         if (label && rest) {
           const sectionText = rest.join(': ');
@@ -80,9 +119,9 @@ export default function Workouts({ navigation }) {
             meals.push(currentMeal);
           }
           if (currentMeal) {
-            const [foodName, foodCalories, foodIngredients] = sectionText.split(': ');
+            let [foodName, foodCalories, foodIngredients] = sectionText.split(': ');
             if (foodName && foodCalories) {
-              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients });
+              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients.replace(/[^a-zA-Z0-9 ]/g, '') });
               extractNumberFromStringAsInteger(foodCalories);
             } else {
               console.error('Incomplete food information found');
@@ -93,8 +132,8 @@ export default function Workouts({ navigation }) {
         }
       }
     }
-  
     setMealsData(meals);
+    updateMeals(meals);
     console.log('Parsing successful');
     console.log("meals so far:" + JSON.stringify(meals, null, 2));
     return meals;
@@ -103,7 +142,9 @@ export default function Workouts({ navigation }) {
   
   
   const getPlans = async () => {
+
     try {
+      setCaloriesConsumed(0);
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
         headers: {
@@ -122,9 +163,10 @@ export default function Workouts({ navigation }) {
       if (res.ok) {
         
         const responseJson = await res.json();
-        updateMeals(responseJson.choices[0].text.toString());
+       
         console.log(responseJson.choices[0].text);
         parseMeals(responseJson.choices[0].text.toString());
+
         
       } else {
         console.error('Failed to fetch data');
@@ -150,17 +192,24 @@ export default function Workouts({ navigation }) {
     { label: 'Sun', value: 7 },
   ];
 
-  const circularProgressRef = useRef(null);
 
-  useEffect(() => {
-    if (circularProgressRef.current) {
-      circularProgressRef.current.reAnimate(0, caloriesRatio, 1800, Easing.linear);
-    }
-  }, [caloriesRatio])
 
+  // useEffect(() => {
+  //   setCaloriesRatio((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100)
+  //   if (circularProgressRef.current) {
+  //     console.log("we are getting ehre")
+  //     circularProgressRef.current.reAnimate(0, caloriesRatio, 1800, Easing.linear);
+  //   }
+  // }, [caloriesRatio])
+
+  const [hasFocusEffectRun, setHasFocusEffectRun] = useState(false);
   useFocusEffect(() => {
-    if (circularProgressRef.current) {
-      circularProgressRef.current.reAnimate(0, caloriesRatio, 1800, Easing.linear);
+    if (!hasFocusEffectRun) {
+      // Call your function only once
+      getMeals();
+      
+      // Mark that the effect has run
+      setHasFocusEffectRun(true);
     }
   });
 
@@ -178,7 +227,7 @@ export default function Workouts({ navigation }) {
       <AnimatedCircularProgress
         size={150}
         width={10}
-        fill={caloriesRatio}
+        fill={caloriesConsumed}
         tintColor="white"
         backgroundColor="#262629"
         lineCap="round"
@@ -227,7 +276,7 @@ export default function Workouts({ navigation }) {
       
       {meal.foods.map((food, foodIndex) => (
         <View style={styles.foodContainer} key={foodIndex}>
-          <View>
+          <View style={styles.foodTitleMaxW}>
             <Text style={styles.foodTitle}>{food.name}</Text>
             <Text style={styles.foodsubTitle}>{food.calories}</Text>
           </View>
@@ -343,5 +392,8 @@ const styles = StyleSheet.create({
     width: '95%',
     height: 80,
     marginTop: 10,
+  },
+  foodTitleMaxW: {
+    maxWidth: '80%',
   }
 });
