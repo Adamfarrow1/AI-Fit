@@ -34,7 +34,6 @@ export default function Workouts() {
 
   const fetchAIWorkout = async () => {
 
-    const userData = getUserData();
 
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
@@ -42,11 +41,11 @@ export default function Workouts() {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
+          'Authorization': `Bearer ${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}`
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: "",// This must return first a discription of why this workout is usefull for the user followed by the workout in json
+          prompt: "Give me a short couple sentences on why fitness is important",// This must return first a discription of why this workout is usefull for the user followed by the workout in json
           max_tokens: 300,
           temperature: 1,
         }),
@@ -54,7 +53,7 @@ export default function Workouts() {
 
       if (response.data && response.data.workout) {
         setAiWorkout(response.data.workout);
-        setAiWorkoutDescription(response.data.workout)
+        setAiWorkoutDescription(response.data.workout);
       } else {
         console.error('No workout data received');
         Alert.alert('Error', 'Failed to receive workout data');
@@ -224,7 +223,7 @@ export default function Workouts() {
       <Animated.View style={styles.aiWorkoutBox}>
         <MaterialCommunityIcons name="brain" size={24} color="aqua" />
         <Text style={styles.aiWorkoutText}>AI Recommended Workout</Text>
-        <Text style={styles.descriptionText}>{aiWorkoutDescription || 'Fetching your personalized workout...'}</Text>
+        <Text style={styles.descriptionText}>{aiWorkoutDescription }</Text>
       </Animated.View>
 
 
