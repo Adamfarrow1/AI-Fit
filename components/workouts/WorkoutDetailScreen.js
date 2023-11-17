@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 import Workouts from './Workouts';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/authcontext';
 
 export default function WorkoutDetailScreen({ route }) {
     const { workoutGroup } = route.params;
     const navigation = useNavigation();
     const [currentSet, setCurrentSet] = useState(1);
+    const mongoose = require('mongoose');
+    const { user } = useAuth();
+    
+
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
 
     const getCurrentDay = () => {
@@ -22,6 +28,7 @@ export default function WorkoutDetailScreen({ route }) {
     
         if (isLastSet) {
             if (isLastExercise) {
+                recordWorkoutCompletion();
                 // This was the last set of the last exercise, go back to Workout page
                 setCurrentExerciseIndex(1);
                 setCurrentSet(1);
@@ -36,6 +43,38 @@ export default function WorkoutDetailScreen({ route }) {
             setCurrentSet(currentSet + 1);
         }
     };
+
+    const recordWorkoutCompletion = () => {
+        // Check if user object is defined and has _id property
+        if (!user || !user._id) {
+            console.error('User or user ID is undefined');
+            return; // Exit the function if user or user ID is not available
+        }
+    
+        // Convert ObjectId to a string
+        const userId = user._id.toString();
+    
+        const url = `http://localhost:3000/user/${userId}/recordWorkout`;
+    
+        // Prepare the data to be sent
+        const postData = {
+            date: new Date(),
+            workouts: workoutGroup.groupName,
+        };
+    
+        // Perform the POST request
+        axios.post(url, postData)
+            .then(response => {
+                console.log('Workout recorded successfully:', response.data);
+            })
+            .catch(error => {
+                console.error('Error recording workout:', error);
+            });
+    };
+    
+    
+    
+    
     
 
     const calculateProgress = () => {
