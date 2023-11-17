@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Circle, Svg } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import WorkoutDetailScreen from './WorkoutDetailScreen';
 import axios from 'axios';
 
 
@@ -19,14 +18,53 @@ export default function Workouts() {
   const circleCircumference = 2 * Math.PI * 40; 
   const AnimatedCircle = Animated.createAnimatedComponent(Circle);
   const [workoutGroups, setWorkoutGroups] = useState([]);
-  
-
-
-
+  const [aiWorkout, setAiWorkout] = useState('');
   const routes = useRoute();
-
+  const [aiWorkoutDescription, setAiWorkoutDescription] = useState('');
   const { params } = routes;
   
+
+
+
+  useEffect(() => {
+    fetchAIWorkout();
+  }, []);
+
+
+  const fetchAIWorkout = async () => {
+
+    const userData = getUserData();
+
+    try {
+      const res = await fetch('https://api.openai.com/v1/completions', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "text-davinci-003",
+          prompt: "",// This must return first a discription of why this workout is usefull for the user followed by the workout in json
+          max_tokens: 300,
+          temperature: 1,
+        }),
+      });
+
+      if (response.data && response.data.workout) {
+        setAiWorkout(response.data.workout);
+        setAiWorkoutDescription(response.data.workout)
+      } else {
+        console.error('No workout data received');
+        Alert.alert('Error', 'Failed to receive workout data');
+      }
+    } catch (error) {
+      console.error('Error fetching AI workout:', error);
+      Alert.alert('Error', 'An error occurred while fetching the AI workout');
+    }
+  };
+
+
 
 
   useEffect(() => {
@@ -179,26 +217,17 @@ export default function Workouts() {
   return (
     <View style={styles.container}>
 
+      
+
       {/* Workout Tracking */}
       <View style={styles.trackingBox}>
-    <Text style={styles.subtitle}>Your Activity</Text>
-    <Svg width={100} height={100} viewBox="0 0 100 100">
-        <Circle cx="50" cy="50" r="40" strokeWidth="5" stroke="#3d3d3f" fill="none"/>
-        <AnimatedCircle
-            cx="50"
-            cy="50"
-            r="40"
-            strokeWidth="5"
-            stroke="#FFFFFF"
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray={`${circleCircumference}, ${circleCircumference}`}
-            strokeDashoffset={animatedStrokeDashoffset}
-            rotation="90" 
-            origin="50, 50"
-        />
-    </Svg>
-    <Text style={styles.text}>{Math.round(progress * 100)}% completed</Text>
+       {/* AI Recommended Workout of the Day */}
+      <View style={styles.aiWorkoutBox}>
+        <Text style={styles.subtitle}>AI Recommended Workout of the Day</Text>
+        <Text style={styles.aiWorkoutText}>{aiWorkout || 'Fetching workout...'}</Text>
+        <Text style={styles.descriptionText}>{aiWorkoutDescription || 'Fetching description...'}</Text>
+      </View>
+
 </View>
 
 
@@ -379,4 +408,31 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center'
   },
+
+  aiWorkoutBox: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+    padding: 20,
+    borderRadius: 15,
+    backgroundColor: '#4a90e2', // A vibrant, appealing color
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8, // Adds depth to the box
+  },
+  aiWorkoutText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white', // Ensures text is readable against the background
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
+
 });
