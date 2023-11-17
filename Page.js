@@ -27,6 +27,7 @@ const Page = () => {
   return (
     <View style={styles.container}>
       <Stack.Navigator
+      id='parent'
         screenOptions={{
           headerStyle: {
             backgroundColor: '#161618',
@@ -38,7 +39,10 @@ const Page = () => {
 
         <Stack.Screen name="Login" options={{ headerShown: false }} component={Login} />
         <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen name="Home" options={{ gestureEnabled: false }} component={Home} />
+        <Stack.Screen 
+          name="Home" 
+          component={Home} 
+/>
         <Stack.Screen name="Workouts"  component={Workouts} />
         <Stack.Screen 
           name="WorkoutDetailScreen" 

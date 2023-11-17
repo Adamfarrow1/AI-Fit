@@ -6,8 +6,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv'
 import { useAuth } from '../../context/authcontext';
 import axios from 'axios';
+import { createStackNavigator } from '@react-navigation/stack';
 
-export default function Workouts({ navigation }) {
+export default function Mealplans({ navigation }) {
+
+  const Stack = createStackNavigator();
+
+
+
+
   const [selectedDay, setSelectedDay] = useState(null);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
   const [totalCaloriesNeeded, setTotalCal] = useState(1800);
@@ -40,7 +47,7 @@ export default function Workouts({ navigation }) {
         _id: user._id
       });
 
-      console.log(response);
+      console.log(response.data.user);
     } catch (error) {
       console.error('Error meal:', error);
     }
@@ -59,7 +66,6 @@ export default function Workouts({ navigation }) {
       const mealday = new Date(response.data.user.date)
       if(mealday.getDate() !== today.getDate()){
         getPlans();
-
       }
       else{
         setMealsData(response.data.user.meals);
@@ -205,6 +211,16 @@ export default function Workouts({ navigation }) {
   //   }
   // }, [caloriesRatio])
 
+
+
+
+
+  const handleFoodContainerPress = () => {
+    // Navigate to the FoodDetailsScreen
+    navigation.navigate('Details');
+  };
+  
+
   const [hasFocusEffectRun, setHasFocusEffectRun] = useState(false);
   useFocusEffect(() => {
     if (!hasFocusEffectRun) {
@@ -272,34 +288,34 @@ export default function Workouts({ navigation }) {
       </View>
 
       <ScrollView style={styles.viewbg}>
-      <View>
-  {mealsData.map((meal, index) => (
-    <View key={index}>
-      <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
-      
-      {meal.foods.map((food, foodIndex) => (
-        <View style={styles.foodContainer} key={foodIndex}>
-          <View style={styles.foodTitleMaxW}>
-            <Text style={styles.foodTitle}>{food.name}</Text>
-            <Text style={styles.foodsubTitle}>{food.calories}</Text>
+        {mealsData.map((meal, index) => (
+          <View key={index}>
+            <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
+            {meal.foods.map((food, foodIndex) => (
+              <TouchableOpacity
+                key={foodIndex}
+                style={styles.foodContainer}
+                onPress={handleFoodContainerPress}
+              >
+                <View style={styles.foodTitleMaxW}>
+                  <Text style={styles.foodTitle}>{food.name}</Text>
+                  <Text style={styles.foodsubTitle}>{food.calories}</Text>
+                </View>
+                <View style={{ flexDirection: 'row' }}>
+                  <Text style={styles.details}>Details</Text>
+                  <MaterialIcons
+                    style={{ marginRight: 5 }}
+                    name="arrow-forward-ios"
+                    size={16}
+                    color="white"
+                  />
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={styles.details}>Details</Text>
-            <MaterialIcons
-              style={{ marginRight: 5 }}
-              name="arrow-forward-ios"
-              size={16}
-              color="white"
-            />
-          </View>
-        </View>
-      ))}
-    </View>
-  ))}
-</View>
+        ))}
+      </ScrollView>
 
-
-</ScrollView>
     </View>
   );
 }
