@@ -40,6 +40,8 @@ export default function Register() {
     }, 3000); // 3000 milliseconds = 3 seconds
   }
 
+  
+
 
 
   const handleRegister = async () => {
