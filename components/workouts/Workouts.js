@@ -6,6 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
+import WorkoutDetailScreen from './WorkoutDetailScreen';
 
 
 
@@ -27,6 +28,8 @@ export default function Workouts() {
   const [aiWorkoutDescription, setAiWorkoutDescription] = useState('');
   const { params } = routes;
   const { user } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(false);
+
 
 
 
@@ -64,7 +67,7 @@ export default function Workouts() {
         if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
           console.log("OpenAI API Response:", responseJson.choices[0].text);
           setAiWorkoutDescription(responseJson.choices[0].text);
-          //createCustomWorkout(responseJson.choices[0].text);
+          createCustomWorkout(responseJson.choices[0].text);
         } else {
           console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
         }
@@ -87,73 +90,100 @@ export default function Workouts() {
 
 
 
-  //Create a workout for the day
-  // const createCustomWorkout = async (workoutDiscription) => {
-  //   const summary  = workoutDiscription;
-  
-  //   //user data
-  //   const userPrompt = `Your task is to create a json object of what you think the ideal personalized workout for today would be for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}.`;
 
-    
-  //   try {
-  //     const res = await fetch('https://api.openai.com/v1/completions', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Accept': 'application/json',
-  //         'Content-Type': 'application/json',
-  //         'Authorization': `Bearer ${OPENAI_API_KEY}`
+// PARSE -------------------------------------------------------
 
-  //       },
-  //       body: JSON.stringify({
-  //         model: "text-davinci-003",
-  //         prompt: "Make a workout like this" + workoutDiscription + userPrompt + "output nothing but a json object workout for this: const workoutSchema = new mongoose.Schema({ name: String, description: String, videoURL: String, tip: String, sets: String, reps: String, }); const workoutGroupSchema = new mongoose.Schema({ groupName: { type: String, required: true }, workouts: [workoutSchema], // An array of workoutSchema instances createdDate: { type: Date, default: Date.now }, // Any other fields you find necessary for a group of workouts });",
-  //         max_tokens: 50,
-  //         temperature: 1,
-  //       }),
-  //     });
-      
-  //     if (res.ok) {
-  //       const responseJson = await res.json();
-  
-  //       // Check if the response contains the expected data
-  //       if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
-  //         console.log("OpenAI API Response:", responseJson.choices[0].text);
 
-  //         //Turn the response into a json
-  //         var obj = JSON.parse(responseJson.choices[0].text);
-  //         exercises = obj;// set the custom workouts to be added to db
-  //       } else {
-  //         console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
-  //       }
-  //     } else {
-  //       console.error("Failed to fetch data from OpenAI API. Status:", res.status, "Status Text:", res.statusText);
-  //       const errorResponse = await res.text();
-  //       console.error("Error Response Body:", errorResponse);
-  //     }
-  //   } catch (error) {
-  //     console.error("An error occurred while fetching data from OpenAI API:", error);
-  //   }
+  const createCustomWorkout = async () => {
+    // Check if AI-generated workout description is available
+    if (!aiWorkoutDescription) {
+      console.error('AI workout description is not available');
+      return;
+    }
   
-  //   // Create the workout object
-  //   const customWorkout = {
-  //     groupName: "AI Workout of the Day",
-  //     workouts: exercises, // Assuming exercises is an array of exercise objects
-  //   };
+    // Use the AI to generate a complete workout plan
+    const aiWorkoutPrompt = `Create a detailed workout plan for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Consider their recent workout history: ${user.workoutHistory}. Include exercises, sets, reps, and rest periods.`;
   
-  //   // Send the workout object to the server
-  //   try {
-  //     const response = await axios.post(`http://localhost:3000/addWorkoutGroup`, customWorkout);
-  //     if (response.status === 201) {
-  //       Alert.alert('Success', 'Your custom workout has been created.');
-  //       // You can add additional logic here if needed (e.g., navigation, state update)
-  //     } else {
-  //       Alert.alert('Error', 'Failed to create custom workout.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error creating custom workout:', error);
-  //     Alert.alert('Error', 'An error occurred while creating the custom workout.');
-  //   }
-  // };
+    try {
+      const aiRes = await fetch('https://api.openai.com/v1/completions', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "text-davinci-003",
+          prompt: aiWorkoutPrompt,
+          max_tokens: 150,
+          temperature: 0.7,
+        }),
+      });
+  
+      if (aiRes.ok) {
+        const aiResponseJson = await aiRes.json();
+  
+        // Check if the AI response is valid
+        if (aiResponseJson.choices && aiResponseJson.choices.length > 0 && aiResponseJson.choices[0].text) {
+          const aiGeneratedWorkout = aiResponseJson.choices[0].text;
+          console.log("AI Generated Workout Plan:", aiGeneratedWorkout);
+  
+          // Process AI-generated workout plan
+          const newWorkoutGroup = {
+            groupName: `AI Custom Workout for ${user.fullName}`,
+            workouts: processAIWorkoutPlan(aiGeneratedWorkout),
+            createdDate: new Date(),
+          };
+  
+          // Post the new workout group to your server/database
+          const response = await axios.post('http://localhost:3000/addWorkoutGroup', newWorkoutGroup);
+          if (response.status === 201) {
+            console.log('Custom workout group created successfully');
+            setWorkoutGroups(prevGroups => [...prevGroups, response.data.workoutGroup]);
+            navigation.navigate('WorkoutDetailScreen', { workoutGroup: response.data.workoutGroup });
+          } else {
+            console.error('Failed to create custom workout group');
+          }
+        } else {
+          console.error("Invalid AI response structure:", JSON.stringify(aiResponseJson, null, 2));
+        }
+      } else {
+        console.error("Failed to fetch data from AI API. Status:", aiRes.status, "Status Text:", aiRes.statusText);
+        const errorResponse = await aiRes.text();
+        console.error("Error Response Body:", errorResponse);
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data from AI API:", error);
+    }
+  };
+  
+  const processAIWorkoutPlan = (aiWorkoutPlan) => {
+    // Parse and structure the AI-generated workout plan into a format suitable for your application.
+    // This parsing logic will depend on how the AI structures the workout plan.
+    // For example, it might involve splitting the text into individual workouts and extracting details like sets, reps, etc.
+  
+    // Dummy implementation (replace with actual parsing logic):
+    return [
+      {
+        name: 'AI Custom Exercise 1',
+        description: 'First exercise description from AI',
+        sets: '3',
+        reps: '10',
+        // Add other properties as needed
+      },
+      // ... other exercises
+    ];
+  };
+  
+  
+  
+
+
+
+
+
+
+
 
 
 
@@ -313,11 +343,27 @@ export default function Workouts() {
       
 
       {/* Workout Tracking */}
-      <Animated.View style={styles.aiWorkoutBox}>
+      <TouchableOpacity 
+        style={styles.aiWorkoutBox} 
+        onPress={() => setIsExpanded(!isExpanded)}
+      >
         <MaterialCommunityIcons name="brain" size={24} color="aqua" />
-        <Text style={styles.aiWorkoutText}>AI Recommended Workout</Text>
-        <Text style={styles.descriptionText}>{aiWorkoutDescription }</Text>
-      </Animated.View>
+        <Text style={[styles.aiWorkoutText, { textDecorationLine: 'underline' }]}>AI Recommended Workout</Text>
+        {
+          isExpanded 
+          ? <Text style={styles.descriptionText}>{aiWorkoutDescription}</Text>
+          : <Text style={styles.descriptionText}>Tap to see details</Text>
+        }
+        {
+          isExpanded &&
+          <TouchableOpacity 
+            style={styles.detailButton}
+            //onPress={() => navigation.navigate('WorkoutDetailScreen', { workoutGroup: })}    
+          >
+            <Text style={styles.detailButtonText}>Go to Workout</Text>
+          </TouchableOpacity>
+        }
+      </TouchableOpacity>
 
 
 
@@ -514,6 +560,13 @@ const styles = StyleSheet.create({
     width: 0,
     height: 4,
   },
+
+  aiWorkoutBoxExpanded: {
+    height: 'auto', // Adjust as needed
+  },
+  aiWorkoutBoxCollapsed: {
+    height: 100, // Adjust as needed
+  },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 8, // Adds depth to the box
@@ -531,6 +584,48 @@ const styles = StyleSheet.create({
     color: 'white', // Vibrant text color for emphasis
     textAlign: 'center',
     marginBottom: 10,
+  },
+  workoutItemContainer: {
+    backgroundColor: '#fff', // White background
+    borderRadius: 10, // Rounded corners
+    padding: 15, // Internal spacing
+    marginVertical: 8, // Space between items
+    marginHorizontal: 16, // Horizontal spacing from screen edges
+    shadowColor: '#000', // Shadow color
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset
+    shadowOpacity: 0.23, // Shadow opacity
+    shadowRadius: 2.62, // Shadow radius
+    elevation: 4, // Elevation for Android
+  },
+
+  // Title of the workout
+  workoutTitle: {
+    fontSize: 18, // Font size
+    fontWeight: 'bold', // Bold font
+    color: '#333', // Text color
+    marginBottom: 8, // Space below the title
+  },
+
+  // Description of the workout
+  workoutDescription: {
+    fontSize: 14, // Font size
+    color: '#666', // Text color
+    lineHeight: 20, // Line height for better readability
+  },
+
+  // Button or touchable area for selecting the workout
+  selectButton: {
+    backgroundColor: '#3a90e2', // Button color
+    padding: 10, // Padding inside the button
+    borderRadius: 5, // Rounded corners of the button
+    marginTop: 10, // Space above the button
+    alignItems: 'center', // Center items inside the button
+  },
+
+  // Text inside the select button
+  buttonText: {
+    color: '#fff', // White text color
+    fontWeight: '600', // Slightly bold
   }
 
 
