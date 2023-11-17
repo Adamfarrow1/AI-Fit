@@ -35,7 +35,7 @@ export default function Workouts({ navigation }) {
     try {
       console.log("meals data:::::")
       console.log(JSON.stringify(mealsData, null, 2));
-      const response = await axios.post('http://10.127.130.59:3000/updateMeals', {
+      const response = await axios.post('http://10.127.130.59:3000/meals', {
         mealsData: mealsData,
         _id: user._id
       });
@@ -49,6 +49,7 @@ export default function Workouts({ navigation }) {
 
   const getMeals = async () =>{
     try{
+      console.log(user);
       const response = await axios.post('http://10.127.130.59:3000/updateMeals', {
         _id: user._id
       });
@@ -62,9 +63,11 @@ export default function Workouts({ navigation }) {
       }
       else{
         setMealsData(response.data.user.meals);
+        if(response.data.user.meals[0].foods[0].calories && response.data.user.meals[1].foods[0].calories && response.data.user.meals[2].foods[0].calories){
         extractNumberFromStringAsInteger(response.data.user.meals[0].foods[0].calories)
         extractNumberFromStringAsInteger(response.data.user.meals[1].foods[0].calories)
         extractNumberFromStringAsInteger(response.data.user.meals[2].foods[0].calories)
+        }
         // circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
         // console.log("kcal rn" )
         // console.log(caloriesRatio)

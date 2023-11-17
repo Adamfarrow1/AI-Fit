@@ -30,15 +30,12 @@ export default function Login() {
     console.log(username + ' ' + password)
     try {
       if(!username || !password) return
-      const response = await axios.post('http://192.168.1.178:3000/login', {
+      const response = await axios.post('http://10.127.130.59:3000/login', {
         userName: username,
         password: password,
       });
 
-      login({
-        userName: username,
-        password: password,
-      });
+      login(response.data.user);
 
 
     
