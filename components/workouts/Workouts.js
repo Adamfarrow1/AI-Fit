@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Circle, Svg } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 
 
@@ -220,15 +221,12 @@ export default function Workouts() {
       
 
       {/* Workout Tracking */}
-      <View style={styles.trackingBox}>
-       {/* AI Recommended Workout of the Day */}
-      <View style={styles.aiWorkoutBox}>
-        <Text style={styles.subtitle}>AI Recommended Workout of the Day</Text>
-        <Text style={styles.aiWorkoutText}>{aiWorkout || 'Fetching workout...'}</Text>
-        <Text style={styles.descriptionText}>{aiWorkoutDescription || 'Fetching description...'}</Text>
-      </View>
+      <Animated.View style={styles.aiWorkoutBox}>
+        <MaterialCommunityIcons name="brain" size={24} color="aqua" />
+        <Text style={styles.aiWorkoutText}>AI Recommended Workout</Text>
+        <Text style={styles.descriptionText}>{aiWorkoutDescription || 'Fetching your personalized workout...'}</Text>
+      </Animated.View>
 
-</View>
 
 
 
@@ -336,7 +334,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 5,
     borderWidth: 1.5,
-    borderColor: '#3a90e2',
+    borderColor: 'aqua',
     borderRadius: 5,
     backgroundColor: '#1a1a1a'
   },
@@ -347,7 +345,7 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   workoutNotDone: {
-    color: '#3a90e2',
+    color: 'white',
     textAlign: 'center',
     fontWeight: '600'
   },
@@ -356,12 +354,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 5,
-    backgroundColor: '#3a90e2',
+    backgroundColor: 'aqua',
     alignItems: 'center',
     justifyContent: 'center',
   },
   monthButtonText: {
-    color: '#ffffff',
+    color: 'black',
     fontWeight: '600',
     fontSize: 16,
   },
@@ -415,23 +413,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 20,
     padding: 20,
+    margin: 10,
     borderRadius: 15,
-    backgroundColor: '#4a90e2', // A vibrant, appealing color
+    backgroundColor: '#262626', // Dark theme color
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    width: 0,
+    height: 4,
+  },
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 8, // Adds depth to the box
   },
-  aiWorkoutText: {
-    fontSize: 18,
+    aiWorkoutText: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: 'white', // Ensures text is readable against the background
+    color: 'aqua', // Vibrant text color for emphasis
     textAlign: 'center',
-    marginTop: 10,
+    marginBottom: 10,
   },
 
 
