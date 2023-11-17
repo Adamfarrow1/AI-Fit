@@ -38,6 +38,24 @@ export default function WorkoutDetailScreen({ route }) {
     };
     
 
+    const calculateProgress = () => {
+        const totalExercises = workoutGroup.workouts.length;
+        let totalSets = 0;
+        let completedSets = 0;
+      
+        workoutGroup.workouts.forEach((exercise, index) => {
+          totalSets += parseInt(exercise.sets);
+          if (index < currentExerciseIndex) {
+            completedSets += parseInt(exercise.sets);
+          } else if (index === currentExerciseIndex) {
+            completedSets += currentSet - 1;
+          }
+        });
+      
+        return completedSets / totalSets;
+      };
+      
+
 
 
     return (
@@ -47,6 +65,11 @@ export default function WorkoutDetailScreen({ route }) {
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text style={styles.title}>{workoutGroup.groupName}</Text>
+            </View>
+
+            {/* Progress Bar */}
+            <View style={styles.progressBarContainer}>
+                <View style={[styles.progressBar, { width: `${calculateProgress() * 100}%` }]} />
             </View>
 
             <View style={styles.content}>
@@ -102,4 +125,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 16,
     },
+    progressBarContainer: {
+        height: 20,
+        width: '100%',
+        backgroundColor: 'grey',
+        borderRadius: 10,
+        marginTop: 10,
+        marginBottom: 20,
+      },
+      progressBar: {
+        height: '100%',
+        backgroundColor: '#3a90e2',
+        borderRadius: 10,
+      },
 });
