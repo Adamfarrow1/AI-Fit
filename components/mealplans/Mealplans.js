@@ -21,19 +21,22 @@ export default function Mealplans({ navigation }) {
   const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100);
   const [mealsData, setMealsData] = useState([]);
   const { user } = useAuth();
-
+  let ready = true;
 
   const circularProgressRef = useRef(null);
 
 
   useEffect(() => {
-    // You can access the updated caloriesConsumed value here
-    console.log('Calories Consumed:', caloriesConsumed);
-    setCaloriesRatio((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100)
-    console.log('Calories Ratio :', caloriesRatio);
-    // circularProgressRef.current.animate(0, 0, Easing.quad);
-    circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
+     // You can access the updated caloriesConsumed value here
+     console.log('Calories Consumed:', caloriesConsumed);
+     setCaloriesRatio((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100)
+     console.log('Calories Ratio :', caloriesRatio);
+     // circularProgressRef.current.animate(0, 0, Easing.quad);
+     if(ready && caloriesConsumed !== 0)
+      circularProgressRef.current.reAnimate(0,caloriesRatio,2000, Easing.linear);
   }, [caloriesConsumed]);
+
+
 
 
   
@@ -53,6 +56,10 @@ export default function Mealplans({ navigation }) {
     }
   };
 
+  const setReady = async (state) => {
+    ready = state;
+  }
+
 
   const getMeals = async () =>{
     try{
@@ -70,9 +77,13 @@ export default function Mealplans({ navigation }) {
       else{
         setMealsData(response.data.user.meals);
         if(response.data.user.meals[0].foods[0].calories && response.data.user.meals[1].foods[0].calories && response.data.user.meals[2].foods[0].calories){
+        await setReady(false);
+        circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
+        setCaloriesConsumed(0);  
         extractNumberFromStringAsInteger(response.data.user.meals[0].foods[0].calories)
         extractNumberFromStringAsInteger(response.data.user.meals[1].foods[0].calories)
         extractNumberFromStringAsInteger(response.data.user.meals[2].foods[0].calories)
+        await setReady(true);
         }
         // circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
         // console.log("kcal rn" )
@@ -90,7 +101,7 @@ export default function Mealplans({ navigation }) {
   function extractNumberFromStringAsInteger(inputString) {
     // Use a regular expression to match and extract the number
     const match = inputString.match(/\d+/);
-  
+    setReady(false)
     // Check if a match is found
     if (match) {
       const number = parseInt(match[0], 10); // Parse the matched number as an integer
@@ -107,7 +118,7 @@ export default function Mealplans({ navigation }) {
 
 
 
-  const parseMeals = (mealString) => {
+  const parseMeals = async (mealString) => {
     if (!mealString) {
       console.error('mealString is undefined or empty');
       return [];
@@ -119,7 +130,8 @@ export default function Mealplans({ navigation }) {
   
     for (const section of mealSections) {
       if (section.trim() !== '') {
-        const [label, ...rest] = section.split(/: |-|\(/);
+        const [label, ...rest] = section.split(/: | - |\(/);
+
   
         if (label && rest) {
           const sectionText = rest.join(': ');
@@ -130,7 +142,7 @@ export default function Mealplans({ navigation }) {
           if (currentMeal) {
             let [foodName, foodCalories, foodIngredients] = sectionText.split(': ');
             if (foodName && foodCalories) {
-              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients.replace(/[^a-zA-Z0-9 ]/g, '') });
+              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients?.replace(/[^a-zA-Z0-9 ]/g, '') });
               extractNumberFromStringAsInteger(foodCalories);
             } else {
               console.error('Incomplete food information found');
@@ -141,8 +153,10 @@ export default function Mealplans({ navigation }) {
         }
       }
     }
+
     setMealsData(meals);
-    updateMeals(meals);
+    await updateMeals(meals);
+    await getMeals();
     console.log('Parsing successful');
     console.log("meals so far:" + JSON.stringify(meals, null, 2));
     return meals;
@@ -153,6 +167,8 @@ export default function Mealplans({ navigation }) {
   const getPlans = async () => {
 
     try {
+      await setReady(false);
+      circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
       setCaloriesConsumed(0);
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -163,7 +179,7 @@ export default function Mealplans({ navigation }) {
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)",
+          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)",
           max_tokens: 300,
           temperature: 1,
         }),
@@ -216,6 +232,8 @@ export default function Mealplans({ navigation }) {
 
 
   const handleFoodContainerPress = (meals) => {
+    console.log("meals here for detauls page_----------------------------------------------------")
+    console.log(meals);
     navigation.navigate('Details', {meals: meals});
   };
   
@@ -224,7 +242,7 @@ export default function Mealplans({ navigation }) {
   useFocusEffect(() => {
     if (!hasFocusEffectRun) {
       // Call your function only once
-      getMeals();
+       getMeals();
       
       // Mark that the effect has run
       setHasFocusEffectRun(true);
@@ -245,7 +263,7 @@ export default function Mealplans({ navigation }) {
       <AnimatedCircularProgress
         size={150}
         width={10}
-        fill={caloriesConsumed}
+        fill={0}
         tintColor="white"
         backgroundColor="#262629"
         lineCap="round"
@@ -262,7 +280,7 @@ export default function Mealplans({ navigation }) {
           )
         }
       </AnimatedCircularProgress>
-      <Button title="Test" onPress={() => {getPlans()}} color="#6b6776" />
+      <Button title="Test" onPress={async () => {await getPlans()}} color="#6b6776" />
       <Text style={styles.title}>Select a day</Text>
       <View style={styles.daysContainer}>
         {daysOfWeek.map((day) => (

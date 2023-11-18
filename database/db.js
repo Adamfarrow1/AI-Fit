@@ -313,6 +313,8 @@ const mealSchema = new mongoose.Schema({
           name: String,
           calories: String,
           ingredients: String,
+          instructions: String,
+          macros: String,
         }
       ]
     }
@@ -361,6 +363,105 @@ app.post('/meals', async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
+
+
+app.post('/updateMacros', async (req, res) => {
+  try {
+    const { _id, mealName, macros } = req.body;
+    const foodId = new mongoose.Types.ObjectId(_id);
+
+    console.log('Received request with _id:', _id, 'mealName:', mealName, 'macros:', macros);
+
+    const updatedMeal = await Meal.findOneAndUpdate(
+      {
+        "meals.foods": {
+          $elemMatch: { "_id": foodId, "name": mealName }
+        }
+      },
+      {
+        $set: {
+          "meals.$[mealElem].foods.$[foodElem].macros": macros,
+        },
+      },
+      {
+        arrayFilters: [
+          { "mealElem.foods.name": mealName },
+          { "foodElem._id": foodId }
+        ],
+        new: true
+      }
+    );
+
+    if (!updatedMeal) {
+      console.error('Meal or food not found');
+      return res.status(404).json({ error: 'Meal or food not found' });
+    }
+
+    console.log('Meal updated successfully:', updatedMeal);
+    res.json({ success: true, updatedMeal });
+  } catch (error) {
+    console.error('Error updating meal:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+app.post('/fetchMacros', async (req, res) => {
+  try {
+    const { _id, mealName } = req.body;
+    const foodId = new mongoose.Types.ObjectId(_id);
+
+    console.log('Received request with _id:', _id, 'mealName:', mealName);
+
+    const updatedFood = await Meal.findOneAndUpdate(
+      {
+        "meals.foods": {
+          $elemMatch: { "_id": foodId, "name": mealName }
+        }
+      },
+      {
+        arrayFilters: [
+          { "mealElem.foods.name": mealName },
+          { "foodElem._id": foodId }
+        ],
+        new: true
+      }
+    );
+
+    if (!updatedFood) {
+      console.error('Meal or food not found');
+      return res.status(404).json({ error: 'Meal or food not found' });
+    }
+
+    const updatedFoodDetails = updatedFood.meals.reduce((result, meal) => {
+      const food = meal.foods.find(f => f._id.toString() === foodId.toString());
+      if (food) {
+        result = food;
+      }
+      return result;
+    }, null);
+
+    console.log('Food details updated successfully:', updatedFoodDetails);
+    res.json({ success: true, updatedFoodDetails });
+  } catch (error) {
+    console.error('Error updating meal:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 
 app.post('/updateMeals', async (req, res) => {
