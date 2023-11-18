@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
 import { useAuth } from '../../context/authcontext';
+import { GLOBAL_IP } from 'react-native-dotenv'
 
 
 
@@ -30,7 +31,7 @@ export default function Login() {
     console.log(username + ' ' + password)
     try {
       if(!username || !password) return
-      const response = await axios.post('http://10.127.130.59:3000/login', {
+      const response = await axios.post('http://'+ GLOBAL_IP + ':3000/login', {
         userName: username,
         password: password,
       });

@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 import Login from './Login';
+import { GLOBAL_IP } from 'react-native-dotenv';
 
 export default function Register() {
   const [step, setStep] = useState(1); // To keep track of the current step
@@ -48,7 +49,7 @@ export default function Register() {
     try {
       console.log('Attempting to create user');
       const height = `${heightFeet}'${heightInches}"`;
-      const response = await axios.post('http://192.168.1.178:3000/registerUser', {
+      const response = await axios.post('http://' + GLOBAL_IP + ':3000/registerUser', {
         userName: username,
         password: password,
         fullName: fullName,

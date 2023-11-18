@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Button, Dimensions } from 'react-native';
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Dashboard from './Dashboard'
-import MealplansRouter from '../mealplans/MealplansRouter';
 import Workouts from '../workouts/Workouts';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SimpleLineIcons } from '@expo/vector-icons'; 
 import { useAuth } from '../../context/authcontext';
+import Mealplans from '../mealplans/Mealplans';
 const Tab = createBottomTabNavigator();
 
 export default function Home(){
@@ -27,7 +27,7 @@ export default function Home(){
     )
   });
   return (
-      <Tab.Navigator id='tab' initialRouteName='Home' screenOptions={{headerShown:false,tabBarStyle: {backgroundColor: '#161618',borderTopWidth: 0}}}>
+      <Tab.Navigator initialRouteName='Home' screenOptions={{headerShown:false,tabBarStyle: {backgroundColor: '#161618',borderTopWidth: 0}}} id='tab'>
         <Tab.Screen name="Screen1" component={Dashboard} options={{ tabBarLabel: "Home", tabBarIcon: ({ color, size }) => (
         <Ionicons name="home" color={color} size={size- 5} />
       ), }} />
@@ -35,7 +35,7 @@ export default function Home(){
         <MaterialCommunityIcons name="weight-lifter" size={size - 5} color={color} />
       ), }} />
       
-        <Tab.Screen name="Screen3" component={MealplansRouter} options={{ tabBarLabel: "Meal plans",tabBarIcon: ({ color, size }) => (
+        <Tab.Screen name="Screen3" component={Mealplans} options={{ tabBarLabel: "Meal plans",tabBarIcon: ({ color, size }) => (
         <MaterialCommunityIcons name="food-apple-outline" size={size - 5} color={color} />
       ), }} />
       </Tab.Navigator>

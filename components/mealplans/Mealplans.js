@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Easing, ScrollView,Button } f
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import {OPENAI_API_KEY} from 'react-native-dotenv'
+import { OPENAI_API_KEY , GLOBAL_IP } from 'react-native-dotenv'
 import { useAuth } from '../../context/authcontext';
 import axios from 'axios';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -42,7 +42,7 @@ export default function Mealplans({ navigation }) {
     try {
       console.log("meals data:::::")
       console.log(JSON.stringify(mealsData, null, 2));
-      const response = await axios.post('http://10.127.130.59:3000/meals', {
+      const response = await axios.post('http://' + GLOBAL_IP + ':3000/meals', {
         mealsData: mealsData,
         _id: user._id
       });
@@ -57,7 +57,7 @@ export default function Mealplans({ navigation }) {
   const getMeals = async () =>{
     try{
       console.log(user);
-      const response = await axios.post('http://10.127.130.59:3000/updateMeals', {
+      const response = await axios.post('http://' + GLOBAL_IP + ':3000/updateMeals', {
         _id: user._id
       });
       console.log("geting meals now------------------------------")
@@ -215,9 +215,8 @@ export default function Mealplans({ navigation }) {
 
 
 
-  const handleFoodContainerPress = () => {
-    // Navigate to the FoodDetailsScreen
-    navigation.navigate('Details');
+  const handleFoodContainerPress = (meals) => {
+    navigation.navigate('Details', {meals: meals});
   };
   
 
@@ -288,33 +287,34 @@ export default function Mealplans({ navigation }) {
       </View>
 
       <ScrollView style={styles.viewbg}>
-        {mealsData.map((meal, index) => (
-          <View key={index}>
-            <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
-            {meal.foods.map((food, foodIndex) => (
-              <TouchableOpacity
-                key={foodIndex}
-                style={styles.foodContainer}
-                onPress={handleFoodContainerPress}
-              >
-                <View style={styles.foodTitleMaxW}>
-                  <Text style={styles.foodTitle}>{food.name}</Text>
-                  <Text style={styles.foodsubTitle}>{food.calories}</Text>
-                </View>
-                <View style={{ flexDirection: 'row' }}>
-                  <Text style={styles.details}>Details</Text>
-                  <MaterialIcons
-                    style={{ marginRight: 5 }}
-                    name="arrow-forward-ios"
-                    size={16}
-                    color="white"
-                  />
-                </View>
-              </TouchableOpacity>
-            ))}
+  {mealsData.map((meal, index) => (
+    <View key={index}>
+      <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
+      {meal.foods.map((food, foodIndex) => (
+        <TouchableOpacity
+          key={foodIndex}
+          style={styles.foodContainer}
+          onPress={() => { handleFoodContainerPress(food) }} // Remove the "meal" parameter here
+        >
+          <View style={styles.foodTitleMaxW}>
+            <Text style={styles.foodTitle}>{food.name}</Text>
+            <Text style={styles.foodsubTitle}>{food.calories}</Text>
           </View>
-        ))}
-      </ScrollView>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.details}>Details</Text>
+            <MaterialIcons
+              style={{ marginRight: 5 }}
+              name="arrow-forward-ios"
+              size={16}
+              color="white"
+            />
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  ))}
+</ScrollView>
+
 
     </View>
   );

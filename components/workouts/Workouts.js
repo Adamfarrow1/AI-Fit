@@ -267,7 +267,7 @@ export default function Workouts() {
   // Get the information from the database
   const fetchWorkoutGroups = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/getWorkoutGroups`);
+      const response = await axios.get(`http://192.168.1.152:3000/getWorkoutGroups`);
       setWorkoutGroups(response.data.workoutGroups); 
 
     } catch (error) {
