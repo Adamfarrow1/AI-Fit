@@ -136,7 +136,7 @@ export default function Workouts() {
           };
   
           // Post the new workout group to your server/database
-          const response = await axios.post('http://localhost:3000/addWorkoutGroup', newWorkoutGroup);
+          const response = await axios.post('http://' + GLOBAL_IP +':3000/addWorkoutGroup', newWorkoutGroup);
           if (response.status === 201) {
             console.log('Custom workout group created successfully');
             setWorkoutGroups(prevGroups => [...prevGroups, response.data.workoutGroup]);
@@ -267,7 +267,7 @@ export default function Workouts() {
   // Get the information from the database
   const fetchWorkoutGroups = async () => {
     try {
-      const response = await axios.get(`http://192.168.1.152:3000/getWorkoutGroups`);
+      const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
       setWorkoutGroups(response.data.workoutGroups); 
 
     } catch (error) {
