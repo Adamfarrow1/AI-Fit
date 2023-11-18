@@ -13,60 +13,75 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
 import { useAuth } from '../../context/authcontext';
-import { GLOBAL_IP } from 'react-native-dotenv'
-
-
-
+import { GLOBAL_IP } from 'react-native-dotenv';
 
 export default function Login() {
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [type, setType] = useState(true);
   const { user, login } = useAuth();
-
-  const [text , setText] = useState('Welcome to Fit AI');
+  const [text, setText] = useState('Welcome to Fit AI');
 
   const handleLogin = async () => {
-    console.log(username + ' ' + password)
+    console.log("Attempting login with:", username, password);
+
+    // Input Validation
+    if (!username.trim() || !password.trim()) {
+      console.error('Username or Password is empty');
+      return;
+    }
+
     try {
-      if(!username || !password) return
-      const response = await axios.post('http://'+ GLOBAL_IP + ':3000/login', {
+      console.log(GLOBAL_IP);
+      const response = await axios.post(`http://${GLOBAL_IP}:3000/login`, {
         userName: username,
         password: password,
       });
 
-      login(response.data.user);
+      console.log("Login response data:", response.data);
 
+      // Checking if the response has the expected structure
+      if (response.data && response.data.message === 'Login successful') {
+        console.log('User login successful', response.data.user);
+        login(response.data.user);
 
-    
-
-
-
-
-
-
-  
-
-      if (response.data.message === 'Login successful') {
-        console.log('User login successful');
         setUsername('');
         setPassword('');
-        navigation.navigate("Home");
-        // Optionally, you can navigate to another screen after successful login
-        // navigation.navigate('SuccessScreen');
+        navigation.navigate('Home');
+      } else {
+        // Handle unexpected response structure
+        console.error('Unexpected response structure:', response.data);
       }
     } catch (error) {
-      console.error('Error login user:', error);
+      if (error.response) {
+        // Request made and server responded
+        console.error('Server responded with an error:', error.response.data);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No Response Received:', {
+          request: {
+            url: error.config.url,
+            method: error.config.method,
+            headers: error.config.headers,
+            data: error.config.data,
+          },
+          message: error.message,
+          isTimeout: error.code === 'ECONNABORTED',
+          isNetworkError: !error.response,
+        });
+      } else {
+        // Something happened in setting up the request that triggered an error
+        console.error('Error setting up login request:', error.message);
+      }
     }
   };
 
+
   const handleTypewriter = () => {
     setTimeout(() => {
-      if(text === 'Welcome to Fit AI'){
+      if (text === 'Welcome to Fit AI') {
         setText('Become Fit Today.');
-      }
-      else{
+      } else {
         setText('Welcome to Fit AI');
       }
     }, 2500); // Delay in milliseconds (adjust as needed)
@@ -84,16 +99,20 @@ export default function Login() {
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.spacing}>
           <View style={styles.helloWorldContainer}>
-            <TypeWriter onTypingEnd={handleTypewriter} style={styles.textcolor} minDelay={120} typing={1}>
-                {text}
-              </TypeWriter>
+            <TypeWriter
+              onTypingEnd={handleTypewriter}
+              style={styles.textcolor}
+              minDelay={120}
+              typing={1}
+            >
+              {text}
+            </TypeWriter>
           </View>
 
           <View style={styles.center}>
@@ -119,7 +138,11 @@ export default function Login() {
                 <Button title="Login" onPress={handleLogin} color="black" />
               </View>
 
-              <Button title="New User? Register" onPress={() => navigation.navigate('Register')} color="#6b6776" />
+              <Button
+                title="New User? Register"
+                onPress={() => navigation.navigate('Register')}
+                color="#6b6776"
+              />
             </View>
           </View>
         </View>
