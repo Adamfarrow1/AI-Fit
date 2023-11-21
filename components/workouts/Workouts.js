@@ -373,18 +373,19 @@ export default function Workouts() {
 
        {/* Updated Workout Categories */}
        <View style={styles.categoriesBox}>
-        <Text style={styles.subtitle}>Your custom workouts:</Text>
-        <Animated.FlatList
-          data={workoutGroups}
-          keyExtractor={(item) => item.groupName}
-          renderItem={renderCategory} // Use the updated renderCategory function
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
-          scrollEventThrottle={16}
-        />
-      </View>
+          <Text style={styles.subtitle}>Your custom workouts:</Text>
+          <Animated.FlatList
+            data={workoutGroups}
+            keyExtractor={(item, index) => `${item.groupName}-${index}`} 
+            renderItem={({ item, index }) => renderCategory({ item, index })} // Pass item and index explicitly to renderCategory
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true }
+            )}
+            scrollEventThrottle={16}
+          />
+        </View>
+
 
 
 
@@ -626,6 +627,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff', // White text color
     fontWeight: '600', // Slightly bold
+  },
+
+  detailButtonText: {
+    color: '#fff', // White text color
+    fontWeight: '300',
   }
 
 
