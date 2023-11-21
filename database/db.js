@@ -313,7 +313,7 @@ const mealSchema = new mongoose.Schema({
           name: String,
           calories: String,
           ingredients: String,
-          instructions: String,
+          recipe: String,
           macros: String,
         }
       ]
@@ -493,6 +493,58 @@ app.post('/updateMeals', async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
+
+
+
+app.post('/updateRecipe', async (req, res) => {
+  try {
+    const { _id, mealName, recipe } = req.body;
+    const foodId = new mongoose.Types.ObjectId(_id);
+
+    console.log('Received request with _id:', _id, 'mealName:', mealName, 'recipe:', recipe);
+
+    const updatedMeal = await Meal.findOneAndUpdate(
+      {
+        "meals.foods": {
+          $elemMatch: { "_id": foodId, "name": mealName }
+        }
+      },
+      {
+        $set: {
+          "meals.$[mealElem].foods.$[foodElem].recipe": recipe,
+        },
+      },
+      {
+        arrayFilters: [
+          { "mealElem.foods.name": mealName },
+          { "foodElem._id": foodId }
+        ],
+        new: true
+      }
+    );
+
+    if (!updatedMeal) {
+      console.error('Meal or food not found');
+      return res.status(404).json({ error: 'Meal or food not found' });
+    }
+
+    console.log('Meal updated successfully:', updatedMeal);
+    console.log('Updated recipe:', updatedMeal.meals.find(meal => meal.foods.find(food => food._id.equals(foodId))).foods.find(food => food._id.equals(foodId)).recipe);
+
+    res.json({ success: true, updatedMeal });
+  } catch (error) {
+    console.error('Error updating meal:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
+
 
 
 

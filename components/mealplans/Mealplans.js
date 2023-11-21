@@ -241,6 +241,7 @@ export default function Mealplans({ navigation }) {
   const [hasFocusEffectRun, setHasFocusEffectRun] = useState(false);
   useFocusEffect(() => {
     if (!hasFocusEffectRun) {
+      console.log("this is a fresh page-------------------------------------------------")
       // Call your function only once
        getMeals();
       

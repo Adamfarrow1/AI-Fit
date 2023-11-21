@@ -33,9 +33,9 @@ export default function Workouts() {
 
 
 
-  useEffect(() => {
-    fetchAIWorkout();
-  }, []);
+  // useEffect(() => {
+  //   fetchAIWorkout();
+  // }, []);
 
 
 

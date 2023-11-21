@@ -12,13 +12,52 @@ const DetailsScreen = ({ route }) => {
   const [nutritionData, setNutritionData] = useState([]);
   const [activeButton, setActiveButton] = useState('ingredients');
   const navigation = useNavigation();
+  const [recipeString, setRecipeString] = useState("");
 
 
   useEffect(() => {
    
     const nav = navigation.getParent('parent');
-    nav.setOptions({title: meal.meals.name});
+    nav.setOptions({title: meal.meals.name, 
+      headerRight: () => (
+        <Text style={styles.addBTN}>Add</Text>
+      )} );
   },[])
+
+
+
+
+  const getRecipe = async () => {
+    try {
+      console.log("chatgpt is being called")
+      const res = await fetch('https://api.openai.com/v1/completions', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "text-davinci-003",
+          prompt: "Give me a recipe for " + meal.meals.name + " if it has " + meal.meals.calories + " with these ingredients " + meal.meals.ingredients + ". Respond professionally and with just the ingredients followed by the instructions.",
+          max_tokens: 300,
+          temperature: 1,
+        }),
+      });
+
+      if (res.ok) {
+        const responseJson = await res.json();
+        console.log(responseJson.choices[0].text);
+        setRecipeString(responseJson.choices[0].text);
+        await storeRecipe(responseJson.choices[0].text);
+
+      } else {
+        console.error('Failed to fetch data');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
 
   const parseData = (data) => {
@@ -69,6 +108,7 @@ const DetailsScreen = ({ route }) => {
 
   const fetchMacros = async () => {
     try{
+      console.log("starting to fetch macros now")
         const response = await axios.post('http://' + GLOBAL_IP + ':3000/fetchMacros', {
           _id: meal.meals._id,
           mealName: meal.meals.name,
@@ -144,6 +184,7 @@ const DetailsScreen = ({ route }) => {
       // Call your function only once
       console.log("fetch the macros")
       fetchMacros();
+      fetchRecipe();
       
       // Mark that the effect has run
       setHasFocusEffectRun(true);
@@ -152,20 +193,111 @@ const DetailsScreen = ({ route }) => {
 
   const switchToIngredients = () => {
     setActiveButton('ingredients');
+    
     // Fetch ingredient macros when switching to the Ingredients tab
     // fetchIngredientMacros();
   };
 
+
+
+  const storeRecipe = async (recipe) => {
+    try{
+      if(recipeString === "") return;
+      console.log("starting to store macros now")
+      console.log("recipe to be stored is: ");
+      console.log(recipeString);
+      const response = await axios.post('http://' + GLOBAL_IP + ':3000/updateRecipe', {
+        _id: meal.meals._id,
+        mealName: meal.meals.name,
+        recipe: recipe,
+      });
+
+      console.log(response.data);
+
+      
+    }catch(error){
+      console.error('Error storing recipe:', error);
+    }
+  }
+
+
+
+
+
+  const fetchRecipe = async () => {
+    try{
+
+      console.log("starting to fetch recipe now")
+        const response = await axios.post('http://' + GLOBAL_IP + ':3000/fetchMacros', {
+          _id: meal.meals._id,
+          mealName: meal.meals.name,
+        });
+  
+        console.log(response.data.updatedFoodDetails.recipe);
+        setRecipeString(response.data.updatedFoodDetails.recipe)
+        if(!response.data.updatedFoodDetails.recipe) getRecipe();
+    }catch(error){
+      getRecipe();
+      console.error('Error fetching recipe:', error);
+    }
+  }
+
+
+
+
   const switchToInstructions = () => {
     setActiveButton('instructions');
+    if(recipeString === "")
+      fetchRecipe();
     // Fetch cooking instructions when switching to the Instructions tab
     // fetchCookingInstructions();
   };
+  const [ingredients, setIngredients] = useState([]);
+  const [instructions, setInstructions] = useState([]);
+
+  useEffect(() => {
+    if(!recipeString) return
+    if(recipeString === ""){
+      return;
+    }
+    console.log("this is the recipeString:  ")
+    console.log(recipeString);
+    // Split the recipe string into lines
+    const lines = recipeString.split('\n');
+
+    // Initialize variables to store ingredients and instructions
+    let tempIngredients = [];
+    let tempInstructions = [];
+    let isInstructionsSection = false;
+
+    // Loop through each line and categorize into ingredients and instructions
+    lines.forEach((line) => {
+      if (line.trim() === 'Ingredients:') {
+        isInstructionsSection = false;
+      } else if (line.trim() === 'Instructions:') {
+        isInstructionsSection = true;
+      } else if (line.trim() !== '') {
+        if (isInstructionsSection) {
+          tempInstructions.push(line.trim());
+        } else {
+          tempIngredients.push(line.trim());
+        }
+      }
+    });
+
+    // Set the state with the parsed ingredients and instructions
+    setIngredients(tempIngredients);
+    setInstructions(tempInstructions);
+    storeRecipe(recipeString);
+    console.log(ingredients);
+    console.log(instructions);
+  }, [recipeString]);
+ 
 
   return (
     <View style={styles.container}>
       {/* Buttons for switching between Ingredients and Instructions */}
-      <Button title="Test" onPress={() => {getPlans()}} color="#6b6776" />
+      <Button title="Test" onPress={() => {getRecipe()}} color="#6b6776" />
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, activeButton === 'ingredients' && styles.activeButton]}
@@ -203,8 +335,19 @@ const DetailsScreen = ({ route }) => {
 
         {activeButton === 'instructions' && (
           // Render cooking instructions
-          <View>
-            {/* ... */}
+          <View style={styles.recipeContainer}>
+            <Text style= {styles.title} >Ingredients:</Text>
+            <View style={styles.foodContainer}>
+              {ingredients.map((ingredient, index) => (
+                <Text style={styles.recipeText} key={index}>{ingredient} {'\n'}</Text>
+              ))}
+            </View>
+            <Text style= {styles.title}>Instructions:</Text>
+            {instructions.map((instruction, index) => (
+              <View key={index} style={styles.foodContainer}>
+                <Text style={styles.recipeText} key={index}>{instruction}</Text>
+              </View>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -213,21 +356,22 @@ const DetailsScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  foodContainer: {
+    alignSelf: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    backgroundColor: '#161618',
+    borderRadius: 20,
+    width: '95%',
+    padding: 10,
+    marginTop: 10,
+  },
   container: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#161618',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: 'white',
-    alignSelf: 'center',
-    textAlign: 'center',
-    marginLeft: 20,
-    marginTop: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -286,6 +430,34 @@ const styles = StyleSheet.create({
   macroText: {
     color: 'white',
   },
+  addBTN: {
+    color: 'white',
+    marginRight: 20,
+  },
+  recipe : {
+    color: 'white',
+    fontWeight: 'bold',
+    width: '95%',
+
+
+  },
+  recipeContainer : {
+    width: '90%',
+    alignSelf: 'flex-start'
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'white',
+    alignSelf: 'flex-start',
+    marginTop: 20,
+    marginLeft: 10,
+    },
+  recipeText : {
+    color: 'white',
+    textAlign: 'left'
+  }
 });
 
 export default DetailsScreen;

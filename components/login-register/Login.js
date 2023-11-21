@@ -23,34 +23,24 @@ export default function Login() {
   const [text, setText] = useState('Welcome to Fit AI');
 
   const handleLogin = async () => {
-    console.log("Attempting login with:", username, password);
-
-    // Input Validation
-    if (!username.trim() || !password.trim()) {
-      console.error('Username or Password is empty');
-      return;
-    }
 
     try {
       console.log(GLOBAL_IP);
-      const response = await axios.post(`http://${GLOBAL_IP}:3000/login`, {
+      const response = await axios.post('http://'+ GLOBAL_IP + ':3000/login', {
         userName: username,
         password: password,
       });
 
+      login(response.data.user);
+
       console.log("Login response data:", response.data);
 
-      // Checking if the response has the expected structure
-      if (response.data && response.data.message === 'Login successful') {
-        console.log('User login successful', response.data.user);
-        login(response.data.user);
-
+      if (response.data.message === 'Login successful') {
+        console.log('User login successful');
         setUsername('');
         setPassword('');
-        navigation.navigate('Home');
-      } else {
-        // Handle unexpected response structure
-        console.error('Unexpected response structure:', response.data);
+        navigation.navigate("Home");
+
       }
     } catch (error) {
       if (error.response) {

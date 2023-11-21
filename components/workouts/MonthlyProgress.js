@@ -8,19 +8,19 @@ const MonthlyProgress = () => {
   const [workoutsList, setWorkoutsList] = useState([]);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchWorkoutHistory = async () => {
-      try {
-        const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
-        const { recentWorkouts } = response.data;
-        processWorkoutData(recentWorkouts);
-      } catch (error) {
-        console.error('Error fetching workout history:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchWorkoutHistory = async () => {
+  //     try {
+  //       const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+  //       const { recentWorkouts } = response.data;
+  //       processWorkoutData(recentWorkouts);
+  //     } catch (error) {
+  //       console.error('Error fetching workout history:', error);
+  //     }
+  //   };
 
-    fetchWorkoutHistory();
-  }, [user._id]);
+  //   fetchWorkoutHistory();
+  // }, [user._id]);
 
   const processWorkoutData = (workouts) => {
     // Sort workouts by date in descending order
