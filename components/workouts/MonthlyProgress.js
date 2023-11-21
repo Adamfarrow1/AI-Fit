@@ -1,26 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
 
 const MonthlyProgress = () => {
   const [calendarData, setCalendarData] = useState({});
+  const [selectedDayWorkouts, setSelectedDayWorkouts] = useState(null);
   const [workoutsList, setWorkoutsList] = useState([]);
+  const [selectedDayData, setSelectedDayData] = useState(null);
   const { user } = useAuth();
 
-  // useEffect(() => {
-  //   const fetchWorkoutHistory = async () => {
-  //     try {
-  //       const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
-  //       const { recentWorkouts } = response.data;
-  //       processWorkoutData(recentWorkouts);
-  //     } catch (error) {
-  //       console.error('Error fetching workout history:', error);
-  //     }
-  //   };
 
-  //   fetchWorkoutHistory();
-  // }, [user._id]);
+
+
+
+
+
+  useEffect(() => {
+    const fetchWorkoutHistory = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+        const { recentWorkouts } = response.data;
+        processWorkoutData(recentWorkouts);
+      } catch (error) {
+        console.error('Error fetching workout history:', error);
+      }
+    };
+
+    fetchWorkoutHistory();
+  }, [user._id]);
+  
+
 
   const processWorkoutData = (workouts) => {
     // Sort workouts by date in descending order
@@ -40,21 +50,63 @@ const MonthlyProgress = () => {
     setWorkoutsList(sortedWorkouts);
   };
 
-  const hasWorkoutsForDay = (day) => {
-    return calendarData[day] && calendarData[day].length > 0;
-  };
-
   const renderCalendarDay = (day) => {
-    const workoutsOnDay = calendarData[day] || [];
-    const isWorkoutDay = hasWorkoutsForDay(day);
-  
+    const isWorkoutDay = calendarData[day] && calendarData[day].length > 0;
+
     return (
-      <View key={day} style={[styles.calendarDayContainer, isWorkoutDay && styles.workoutDay]}>
-        <Text style={[styles.calendarDayText, isWorkoutDay && styles.workoutDayText]}>{day}</Text>
-      </View>
+      <TouchableOpacity key={day} onPress={() => handleDayClick(day)}>
+        <View style={[styles.calendarDayContainer, isWorkoutDay && styles.workoutDay]}>
+          <Text style={[styles.calendarDayText, isWorkoutDay && styles.workoutDayText]}>{day}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
+
+
+
+
+
+
+
+
+  const handleDayClick = (day) => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    const currentDay = new Date().getDate();
+    const date = new Date(currentYear, currentMonth, day);
+  
+    if (day > currentDay) {
+      // Adjust for the previous month
+      date.setMonth(date.getMonth() - 1);
+    }
+  
+    // Check if the adjustment set the month to December of the previous year
+    if (date.getMonth() === 11 && currentMonth === 0) {
+      date.setFullYear(currentYear - 1);
+    }
+  
+    const dateString = date.toLocaleDateString(); // Format the date as a string
+  
+    const workoutsOnDay = calendarData[day];
+    if (workoutsOnDay && workoutsOnDay.length > 0) {
+      setSelectedDayData({
+        date: dateString,
+        workouts: workoutsOnDay.map(workout => workout.workouts).join(", ")
+      });
+    } else {
+      setSelectedDayData({
+        date: dateString,
+        workouts: "No Workouts"
+      });
+    }
+  };
+
+
+
+
+
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const endDate = today.getTime();
@@ -73,6 +125,11 @@ const MonthlyProgress = () => {
     weeks.push(calendarDays.slice(i, i + 7));
   }
 
+
+
+
+
+  
   return (
     <View style={styles.container}>
       <View>
@@ -84,7 +141,19 @@ const MonthlyProgress = () => {
               </View>
             ))}
           </View>
+          
         ))}
+      </View>
+      {/* Display selected day's workout information */}
+      <View style={styles.selectedDayWorkoutContainer}>
+        {selectedDayData ? (
+          <>
+            <Text style={styles.selectedDayWorkoutDate}>{selectedDayData.date}</Text>
+            <Text style={styles.selectedDayWorkoutText}>{selectedDayData.workouts}</Text>
+          </>
+        ) : (
+          <Text style={styles.selectedDayWorkoutText}>Select a day to see workouts</Text>
+        )}
       </View>
       <Text style={styles.workoutListTitle}>Workouts:</Text>
       <Text style={styles.workoutListTitles}> </Text>
@@ -151,7 +220,7 @@ const styles = StyleSheet.create({
   workoutListTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 5,
+    marginTop: 10,
   },
   workoutListTitles: {
     fontSize: 10,
@@ -163,10 +232,9 @@ const styles = StyleSheet.create({
   backgroundColor: '#fff',
   borderRadius: 10,
   padding: 10,
-  borderColor: '#ddd',
-  borderWidth: 1,
-  borderBottomWidth: 2,  // Add a bottom border for the divider
-  borderBottomColor: 'lightgrey', // Set the color of the divider
+  borderColor: 'lightblue',
+  borderWidth: 4,
+  borderBottomColor: 'lightblue', // Set the color of the divider
 },
   workoutItemText: {
     fontSize: 16,
@@ -176,6 +244,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
+  selectedDayWorkoutContainer: {
+    padding: 10,
+    marginTop: 20,
+    backgroundColor: '#ddd', // Example background color
+    // Other styling as needed
+  },
+  selectedDayWorkoutText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 2.5,
+    // Other text styling as needed
+  },
+  selectedDayWorkoutDate: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 4,
+    // Other styling as needed
+  },
+
 });
 
 export default MonthlyProgress;
