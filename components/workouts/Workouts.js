@@ -29,14 +29,56 @@ export default function Workouts() {
   const { params } = routes;
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [workoutHistory, setWorkoutHistory] = useState(new Set());
+  const [streakCounter, setStreakCounter] = useState(0);
+
+
+
+  
+
+  useEffect(() => {
+    const fetchWorkoutHistory = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+        const { recentWorkouts } = response.data;
+        const processedHistory = processWorkoutHistory(recentWorkouts);
+        setWorkoutHistory(processedHistory);
+        calculateStreak(processedHistory);
+      } catch (error) {
+        console.error('Error fetching workout history:', error);
+      }
+    };
+    fetchWorkoutHistory();
+  }, [user._id]);
+  
+  const processWorkoutHistory = (workouts) => {
+    // Process and return the workout dates as a set
+    return new Set(workouts.map(workout => new Date(workout.date).toDateString()));
+  };
+  
+  const calculateStreak = (processedHistory) => {
+    const today = new Date();
+    let streak = 0;
+  
+    for (let i = 0; i <= 365; i++) { 
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      if (processedHistory.has(checkDate.toDateString())) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+  
+    setStreakCounter(streak);
+  };
+  
 
 
 
 
-  // useEffect(() => {
-  //   fetchAIWorkout();
-  // }, []);
 
+  //______________________________________________________________________________________
 
 
   //Get the summarized workout
@@ -394,6 +436,7 @@ export default function Workouts() {
       {/* Workout Days */}
       <View style={styles.plansBox}>
         <Text style={styles.subtitle}>This Week's Progress</Text>
+        <Text style={styles.streakText}>Workout Streak: {streakCounter}</Text>
         <View style={styles.weekContainer}>
           {Object.keys(workoutDays).map(day => (
             <TouchableOpacity key={day} onPress={() => toggleDay(day)} style={styles.dayButton}>
@@ -492,6 +535,7 @@ const styles = StyleSheet.create({
   },
   monthButton: {
     marginTop: 10,
+    marginBottom: 10,
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -632,7 +676,14 @@ const styles = StyleSheet.create({
   detailButtonText: {
     color: '#fff', // White text color
     fontWeight: '300',
-  }
+  },
+
+  streakText: {
+    fontSize: 16,
+    color: '#d0d0d0',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
 
 
 });
