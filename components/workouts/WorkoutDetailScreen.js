@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Workouts from './Workouts';
@@ -12,6 +12,9 @@ export default function WorkoutDetailScreen({ route }) {
     const [currentSet, setCurrentSet] = useState(1);
     const mongoose = require('mongoose');
     const { user } = useAuth();
+    const [showQuiz, setShowQuiz] = useState(false);
+    const [answerOne, setAnswerOne] = useState('');
+    const [answerTwo, setAnswerTwo] = useState('');
     
 
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -20,6 +23,7 @@ export default function WorkoutDetailScreen({ route }) {
         const days = ['Su', 'M', 'T', 'W', 'Th', 'F', 'S'];
         return days[new Date().getDay()];
     };
+
 
     const incrementSet = () => {
         const currentExercise = workoutGroup.workouts[currentExerciseIndex];
@@ -32,7 +36,6 @@ export default function WorkoutDetailScreen({ route }) {
                 // This was the last set of the last exercise, go back to Workout page
                 setCurrentExerciseIndex(1);
                 setCurrentSet(1);
-                navigation.navigate('Workouts', { workoutCompleted: true, completedDay: getCurrentDay() });
             } else {
                 // Move to the next exercise
                 setCurrentExerciseIndex(currentExerciseIndex + 1);
@@ -43,6 +46,19 @@ export default function WorkoutDetailScreen({ route }) {
             setCurrentSet(currentSet + 1);
         }
     };
+
+    const handleQuizSubmit = () => {
+        setShowQuiz(false);
+        // Handle quiz submission logic here (e.g., validate answers)
+        console.log('Answer 1:', answerOne, 'Answer 2:', answerTwo);
+        // Navigate back to Workouts screen
+        navigation.navigate('Workouts', { workoutCompleted: true, completedDay: getCurrentDay() });    
+    };
+
+
+
+
+
 
     const recordWorkoutCompletion = () => {
         // Check if user object is defined and has _id property
@@ -70,6 +86,7 @@ export default function WorkoutDetailScreen({ route }) {
             .catch(error => {
                 console.error('Error recording workout:', error);
             });
+        setShowQuiz(true);
     };
     
     
@@ -98,28 +115,61 @@ export default function WorkoutDetailScreen({ route }) {
 
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Ionicons name="arrow-back" size={24} color="white" />
-                </TouchableOpacity>
-                <Text style={styles.title}>{workoutGroup.groupName}</Text>
-            </View>
+    <View style={styles.container}>
+        <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={24} color="white" />
+            </TouchableOpacity>
+            <Text style={styles.title}>{workoutGroup.groupName}</Text>
+        </View>
 
-            {/* Progress Bar */}
-            <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBar, { width: `${calculateProgress() * 100}%` }]} />
-            </View>
+        {/* Workout Description */}
+        <Text style={styles.workoutDescription}>
+            {workoutGroup.workouts[currentExerciseIndex].description}
+        </Text>
 
-            <View style={styles.content}>
-            <Text style={styles.subtitle}>Current Exercise: {workoutGroup.workouts[currentExerciseIndex].name}</Text>
-            <Text style={styles.subtitle}>Current Set: {currentSet}</Text>
+        <View style={styles.bottomContent}>
             <Text style={styles.subtitle}>Tip: {workoutGroup.workouts[currentExerciseIndex].tip}</Text>
-            
+            <Text style={styles.subtitle}>Current Set: {currentSet}</Text>
             <TouchableOpacity style={styles.button} onPress={incrementSet}>
                 <Text style={styles.buttonText}>Next Set</Text>
             </TouchableOpacity>
         </View>
+
+         {/* Quiz Modal */}
+         <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showQuiz}
+                onRequestClose={() => setShowQuiz(false)}
+            >
+                <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Answer these short questions to help our AI bot fine tune your next workout</Text>
+                        <Text></Text>
+                        <Text style={styles.modalText}>How hard was that workout</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setAnswerOne}
+                            value={answerOne}
+                            placeholder="Your answer"
+                        />
+                        <Text style={styles.modalText}>Did you enjoy it?</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={setAnswerTwo}
+                            value={answerTwo}
+                            placeholder="Your answer"
+                        />
+                        <TouchableOpacity
+                            style={[styles.button, styles.buttonClose]}
+                            onPress={handleQuizSubmit}
+                        >
+                            <Text style={styles.textStyle}>Submit Answers</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -177,4 +227,44 @@ const styles = StyleSheet.create({
         backgroundColor: '#3a90e2',
         borderRadius: 10,
       },
+      workoutDescription: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'white',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    bottomContent: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 22
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    input: {
+        height: 40,
+        margin: 12,
+        borderWidth: 1,
+        padding: 10,
+        width: 200
+    },
 });
