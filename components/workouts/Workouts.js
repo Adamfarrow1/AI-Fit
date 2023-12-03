@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal, Alert } from 'react-native';
 import { Circle, Svg } from 'react-native-svg';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -31,6 +31,9 @@ export default function Workouts() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState(new Set());
   const [streakCounter, setStreakCounter] = useState(0);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+
+
 
 
 
@@ -81,10 +84,10 @@ export default function Workouts() {
   //______________________________________________________________________________________
 
 
-  //Get the summarized workout
+  //Get the SUMMARY workout
   const fetchAIWorkout = async () => {
     //Feed the user data
-    const userPrompt = `Create a summary of 3-4 sentences of what you think the ideal personalized workout today would be for me (a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}). State this summary to user and refer to them as "you" when discussing why the workout is beneficial. These are the workouts they have recently completed along with the dates: ${user.workoutHistory}. Make sure to include their personal information and previous workouts in the explanation.`;
+    const userPrompt = `Provide a brief, 2-sentence summary of an ideal personalized workout for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Focus on the key aspects and benefits, considering their recent workouts: ${user.workoutHistory}.`;
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -109,7 +112,7 @@ export default function Workouts() {
         if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
           console.log("OpenAI API Response:", responseJson.choices[0].text);
           setAiWorkoutDescription(responseJson.choices[0].text);
-          createCustomWorkout(responseJson.choices[0].text);
+          setShowSummaryModal(true);
         } else {
           console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
         }
@@ -133,6 +136,7 @@ export default function Workouts() {
 
 
 
+
 // PARSE -------------------------------------------------------
 
 
@@ -144,7 +148,7 @@ export default function Workouts() {
     }
   
     // Use the AI to generate a complete workout plan
-    const aiWorkoutPrompt = `Create a detailed workout plan for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Consider their recent workout history: ${user.workoutHistory}. Include exercises, sets, reps, and rest periods.`;
+    const aiWorkoutPrompt = `Generate a personalized workout plan for a user with the following profile: age: ${user.age} years, gender: ${user.gender}, weight: ${user.weight} lbs, height: ${user.height} cm, fitness goal: ${user.goal}. Take into account their recent workout history: ${user.workoutHistory}. If the history is blank, mention that this is their first custom workout. The plan should include a variety of exercises targeting different muscle groups appropriate for the user's fitness level and goals. For each exercise, specify the name, sets, reps, and rest periods in a clear, structured format that can be easily understood and implemented. The plan should be balanced, progressive, and safe, considering the user's physical capabilities and objectives.`;
   
     try {
       const aiRes = await fetch('https://api.openai.com/v1/completions', {
@@ -381,59 +385,36 @@ export default function Workouts() {
   // LAYOUT __________________________________________________________________________________________________________
   return (
     <View style={styles.container}>
-
+      {/* Existing content and components */}
       
-
-      {/* Workout Tracking */}
+      {/* AI Recommended Workout Box */}
       <TouchableOpacity 
         style={styles.aiWorkoutBox} 
-        onPress={() => setIsExpanded(!isExpanded)}
+        onPress={fetchAIWorkout} // Directly calling fetchAIWorkout on press
       >
         <MaterialCommunityIcons name="brain" size={24} color="aqua" />
-        <Text style={[styles.aiWorkoutText, { textDecorationLine: 'underline' }]}>AI Recommended Workout</Text>
-        {
-          isExpanded 
-          ? <Text style={styles.descriptionText}>{aiWorkoutDescription}</Text>
-          : <Text style={styles.descriptionText}>Tap to see details</Text>
-        }
-        {
-          isExpanded &&
-          <TouchableOpacity 
-            style={styles.detailButton}
-            //onPress={() => navigation.navigate('WorkoutDetailScreen', { workoutGroup: })}    
-          >
-            <Text style={styles.detailButtonText}>Go to Workout</Text>
-          </TouchableOpacity>
-        }
+        <Text style={[styles.aiWorkoutText, { textDecorationLine: 'underline' }]}>
+          AI Recommended Workout
+        </Text>
       </TouchableOpacity>
 
-
-
-
-
-
-
-       {/* Updated Workout Categories */}
-       <View style={styles.categoriesBox}>
-          <Text style={styles.subtitle}>Your custom workouts:</Text>
-          <Animated.FlatList
-            data={workoutGroups}
-            keyExtractor={(item, index) => `${item.groupName}-${index}`} 
-            renderItem={({ item, index }) => renderCategory({ item, index })} // Pass item and index explicitly to renderCategory
-            onScroll={Animated.event(
-              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-              { useNativeDriver: true }
-            )}
-            scrollEventThrottle={16}
-          />
-        </View>
-
-
-
-
-
-
-      {/* Workout Days */}
+  
+      {/* Workout Categories */}
+      <View style={styles.categoriesBox}>
+        <Text style={styles.subtitle}>Your custom workouts:</Text>
+        <Animated.FlatList
+          data={workoutGroups}
+          keyExtractor={(item, index) => `${item.groupName}-${index}`} 
+          renderItem={({ item, index }) => renderCategory({ item, index })}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
+        />
+      </View>
+  
+      {/* Week's Progress */}
       <View style={styles.plansBox}>
         <Text style={styles.subtitle}>This Week's Progress</Text>
         <Text style={styles.streakText}>Workout Streak: {streakCounter}</Text>
@@ -450,9 +431,35 @@ export default function Workouts() {
           <Text style={styles.monthButtonText}>View the past month</Text>
         </TouchableOpacity>
       </View>
-
+  
+      {/* AI Workout Summary Modal */}
+      {
+        showSummaryModal &&
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showSummaryModal}
+          onRequestClose={() => setShowSummaryModal(false)}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalText}>{aiWorkoutDescription}</Text>
+              <TouchableOpacity
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => {
+                  setShowSummaryModal(false);
+                  createCustomWorkout();
+                }}
+              >
+                <Text style={styles.textStyle}>Proceed to Workout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      }
     </View>
   );
+  
 };
 
 
@@ -685,5 +692,48 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)' // Semi-transparent background
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "black",
+    borderRadius: 20,
+    borderColor: "aqua",
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    color: 'white', // Text color
+    fontSize: 16, // Text size
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+    marginTop: 10, // Spacing above the button
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3", // Button background color
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
 
 });
