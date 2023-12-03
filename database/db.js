@@ -273,6 +273,8 @@ app.post('/registerUser', async (req, res) => {
 
 
 
+
+
 // Route to handle user login
 app.post('/login', async (req, res) => {
   try {
@@ -320,6 +322,32 @@ const mealSchema = new mongoose.Schema({
     }
   ]
 });
+
+
+// In your db.js or equivalent server file
+
+app.delete('/deleteWorkoutGroup/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+      const result = await deleteWorkoutGroupById(id);
+      if (result.deletedCount === 0) {
+          return res.status(404).json({ message: 'No workout group found with the provided ID' });
+      }
+      res.status(200).json({ message: 'Workout group deleted successfully' });
+  } catch (error) {
+      console.error('Error deleting workout group:', error);
+      res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+const deleteWorkoutGroupById = async (id) => {
+  // Replace 'WorkoutGroupModel' with your actual Mongoose model name
+  return await WorkoutGroupModel.deleteOne({ _id: id });
+};
+
+
 
 
 
