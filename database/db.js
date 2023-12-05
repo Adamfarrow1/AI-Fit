@@ -18,6 +18,15 @@ mongoose
     console.error('MongoDB connection error:', error);
   });
 
+const workoutSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  videoURL: String,
+  tip: String,
+  sets: String,
+  reps: String,
+});
+
 // Define a Mongoose schema for your data
 const userSchema = new mongoose.Schema({
       name: String,
@@ -34,26 +43,21 @@ const userSchema = new mongoose.Schema({
         date: Date,
         workouts: String,
       }],
+      dailyAIWorkout: [{
+        type: {
+          groupName: {
+            type: String,
+          },
+          workouts: [workoutSchema],
+          createdDate: {
+            type: Date,
+            default: Date.now
+          }
+        },
+      }],
 });
 
-const deleteOldWorkouts = async () => {
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-  await UserModel.updateMany(
-    {},
-    { $pull: { workoutHistory: { date: { $lt: oneMonthAgo } } } }
-  );
-};
-
-const workoutSchema = new mongoose.Schema({
-  name: String,
-  description: String,
-  videoURL: String,
-  tip: String,
-  sets: String,
-  reps: String,
-});
 
 const workoutGroupSchema = new mongoose.Schema({
   groupName: {
@@ -65,7 +69,6 @@ const workoutGroupSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  // Any other fields you find necessary for a group of workouts
 });
 
 
@@ -107,7 +110,27 @@ app.post('/user/:userId/recordWorkout', async (req, res) => {
 
 
 
+app.post('/user/:userId/updateDailyAIWorkout', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const dailyAIWorkoutData = req.body;
 
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { dailyAIWorkout: dailyAIWorkoutData } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Daily AI workout updated successfully', updatedUser });
+  } catch (error) {
+    console.error('Error updating daily AI workout:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
 
 
 
@@ -117,8 +140,6 @@ app.get('/user/:userId/workoutHistory', async (req, res) => {
   const { userId } = req.params;
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-  console.log("working");
 
   const user = await UserModel.findById(userId).populate('workoutHistory.workouts');
   const recentWorkouts = user.workoutHistory.filter(w => w.date >= oneMonthAgo);
@@ -346,6 +367,25 @@ const deleteWorkoutGroupById = async (id) => {
   // Replace 'WorkoutGroupModel' with your actual Mongoose model name
   return await WorkoutGroupModel.deleteOne({ _id: id });
 };
+
+
+app.delete('/deleteWorkout/:workoutId', async (req, res) => {
+  try {
+    const { workoutId } = req.params;
+    // Assuming workouts are stored within the user document
+    // and each workout has a unique _id
+    await UserModel.updateMany(
+      {},
+      { $pull: { workoutHistory: { _id: workoutId } } }
+    );
+
+    res.status(200).json({ message: 'Workout deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting workout:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
 
 
 
