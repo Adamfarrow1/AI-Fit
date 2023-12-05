@@ -148,10 +148,10 @@ export default function Register() {
       case 5: // Weight
         return (
           <Picker
-              selectedValue={age}
+              selectedValue={weight}
               style={styles.picker}
               itemStyle={{ color: 'white' }}
-              onValueChange={(itemValue) => setAge(itemValue)}
+              onValueChange={(itemValue) => setWeight(itemValue)}
           >
               {[...Array(341).keys()].map((_, index) => (
                   <Picker.Item key={index} label={String(index + 60)} value={String(index + 60)} />
