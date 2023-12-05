@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useReducer } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,24 +9,52 @@ import WorkoutDetailScreen from './WorkoutDetailScreen';
 
 
 
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_WORKOUT_GROUPS':
+      return { ...state, workoutGroups: action.payload };
 
+    case 'SET_WORKOUT_HISTORY':
+      return { ...state, workoutHistory: action.payload };
+
+    case 'SET_STREAK_COUNTER':
+      return { ...state, streakCounter: action.payload };
+
+    case 'TOGGLE_SUMMARY_MODAL':
+      return { ...state, showSummaryModal: !state.showSummaryModal };
+
+    case 'SET_AI_WORKOUT_DESCRIPTION':
+      return { ...state, aiWorkoutDescription: action.payload };
+
+    // Add other case statements for different actions as needed
+    default:
+      return state;
+  }
+};
 
 export default function Workouts() {
 
-  
+
+  const initialState = {
+    workoutGroups: [],
+    workoutHistory: new Set(),
+    streakCounter: 0,
+    showSummaryModal: false,
+    aiWorkoutDescription: '',
+  };
+
+  const [state, dispatch] = useReducer(reducer, initialState);
   const navigation = useNavigation();
-  
+
   // State and Refs
-  const [workoutGroups, setWorkoutGroups] = useState([]);
   const routes = useRoute();
-  const [aiWorkoutDescription, setAiWorkoutDescription] = useState('');
   const { params } = routes;
   const { user } = useAuth();
-  const [workoutHistory, setWorkoutHistory] = useState(new Set());
-  const [streakCounter, setStreakCounter] = useState(0);
-  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const { workoutGroups, aiWorkoutDescription, 
+    workoutHistory, streakCounter, showSummaryModal 
+  } = state;
 
-
+  
   
 
 
@@ -38,7 +66,7 @@ export default function Workouts() {
         const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
         const { recentWorkouts } = response.data;
         const processedHistory = processWorkoutHistory(recentWorkouts);
-        setWorkoutHistory(processedHistory);
+        dispatch({ type: 'SET_WORKOUT_HISTORY', payload: processedHistory });
         calculateStreak(processedHistory);
       } catch (error) {
         console.error('Error fetching workout history:', error);
@@ -66,7 +94,7 @@ export default function Workouts() {
       }
     }
   
-    setStreakCounter(streak);
+    dispatch({ type: 'SET_STREAK_COUNTER', payload: streak });
   };
   
 
@@ -104,8 +132,8 @@ export default function Workouts() {
         // Check if the response contains the expected data
         if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
           console.log("OpenAI API Response:", responseJson.choices[0].text);
-          setAiWorkoutDescription(responseJson.choices[0].text);
-          setShowSummaryModal(true);
+          dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload: responseJson.choices[0].text });
+          dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
         } else {
           console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
         }
@@ -488,7 +516,7 @@ export default function Workouts() {
   const fetchWorkoutGroups = async () => {
     try {
       const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
-      setWorkoutGroups(response.data.workoutGroups); 
+      dispatch({ type: 'SET_WORKOUT_GROUPS', payload: response.data.workoutGroups });
 
     } catch (error) {
       console.error('Error fetching workout groups:', error);
@@ -613,7 +641,7 @@ export default function Workouts() {
           animationType="slide"
           transparent={true}
           visible={showSummaryModal}
-          onRequestClose={() => setShowSummaryModal(false)}
+          onRequestClose={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' }) }
           style={{ flex: 1 }} // Add this line to ensure the modal takes up the entire screen
         >
           <View style={styles.fullScreenModalView}>
@@ -621,7 +649,7 @@ export default function Workouts() {
             <TouchableOpacity
               style={[styles.button, styles.buttonClose]}
               onPress={() => {
-                setShowSummaryModal(false);
+                dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
                 createCustomWorkout();
               }}
             >
