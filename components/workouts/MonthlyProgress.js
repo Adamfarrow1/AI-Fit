@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Animated } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
 
@@ -9,13 +10,19 @@ const MonthlyProgress = () => {
   const [workoutsList, setWorkoutsList] = useState([]);
   const [selectedDayData, setSelectedDayData] = useState(null);
   const { user } = useAuth();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editingDate, setEditingDate] = useState('');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endDate = today.getTime();
+  today.setDate(today.getDate() - 27);
+  const calendarDays = [];
+  const currentDate = new Date(today);
 
 
 
 
-
-
-
+//_______________ CREATE CALENDAR ______________________
   useEffect(() => {
     const fetchWorkoutHistory = async () => {
       try {
@@ -29,9 +36,6 @@ const MonthlyProgress = () => {
 
     fetchWorkoutHistory();
   }, [user._id]);
-  
-
-
   const processWorkoutData = (workouts) => {
     // Sort workouts by date in descending order
     const sortedWorkouts = workouts.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -49,7 +53,6 @@ const MonthlyProgress = () => {
     setCalendarData(calendar);
     setWorkoutsList(sortedWorkouts);
   };
-
   const renderCalendarDay = (day) => {
     const isWorkoutDay = calendarData[day] && calendarData[day].length > 0;
 
@@ -63,13 +66,143 @@ const MonthlyProgress = () => {
   };
 
 
+//_________________________ EDIT DAY ______________________
+  const openEditModal = (day) => {
+    setEditingDate(day);
+    setIsEditModalVisible(true);
+  };
+  
+
+  const handleWorkoutUpdate = async (updatedWorkouts) => {
+    try {
+      // Prepare the data for the request
+      const data = {
+        date: editingDate,
+        workouts: updatedWorkouts
+      };
+      
+
+      // Send a POST request to update the workout for the specific user and date
+      const response = await axios.post(`http://localhost:3000/user/${user._id}/recordWorkout`, data);
+
+      if (response.status === 200) {
+        const fetchWorkoutHistory = async () => {
+          try {
+            const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+            const { recentWorkouts } = response.data;
+            processWorkoutData(recentWorkouts);
+          } catch (error) {
+            console.error('Error fetching workout history:', error);
+          }
+        };
+        fetchWorkoutHistory();
+        console.log('Workout updated successfully:', response.data);
+        
+      } else {
+        console.error('Failed to update workout:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error in handleWorkoutUpdate:', error);
+    }
+
+    // Close the edit modal
+    setIsEditModalVisible(false);
+  };
+
+
+  const EditWorkoutModal = ({ isVisible, date, onSave, onClose }) => {
+    const [updatedWorkouts, setUpdatedWorkouts] = useState(/* initial workout data */);
+  
+    // Define how to handle changes
+    const handleWorkoutChange = (text) => {
+      setUpdatedWorkouts(text);
+    };
+  
+    return (
+      <Modal visible={isVisible} onRequestClose={onClose} animationType="slide" transparent={false}>
+        <View style={styles.container}>
+          <Text style={styles.title}>What did you workout on this day?</Text>
+          <TextInput 
+            style={styles.input}
+            onChangeText={handleWorkoutChange}
+            value={updatedWorkouts}
+            placeholder="Type your workout details here"
+            multiline
+          />
+          <TouchableOpacity style={styles.button} onPress={() => onSave(updatedWorkouts)}>
+            <Text style={styles.buttonText}>Save Changes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  };
+
+
+
+  // ____________________  DELETE FUNCTION  _______________________________
+
+
+  const renderSwipeableRightAction = (workoutId, progress, dragX) => {
+    const scale = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0],
+      extrapolate: 'clamp',
+    });
+  
+    return (
+      <TouchableOpacity
+        onPress={() => handleDeleteWorkout(workoutId)}
+        style={{ backgroundColor: 'red', justifyContent: 'center' }}>
+        <Animated.Text
+          style={{
+            color: 'white',
+            paddingHorizontal: 20,
+            fontWeight: '600',
+            transform: [{ scale }],
+          }}>
+          Delete
+        </Animated.Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const handleDeleteWorkout = async (workoutId) => {
+    try {
+      // Send DELETE request to the server
+      const response = await axios.delete(`http://localhost:3000/deleteWorkout/${workoutId}`);
+  
+      if (response.status === 200) {
+        // Filter out the deleted workout from the workoutsList state
+        const fetchWorkoutHistory = async () => {
+          try {
+            const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+            const { recentWorkouts } = response.data;
+            processWorkoutData(recentWorkouts);
+          } catch (error) {
+            console.error('Error fetching workout history:', error);
+          }
+        };
+        fetchWorkoutHistory();
+  
+        console.log('Workout deleted successfully');
+      } else {
+        console.error('Failed to delete workout:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error in handleDeleteWorkout:', error);
+    }
+  };
+  
+  
+  
 
 
 
 
-
-
-
+//________________ CLICK DAY __________________
   const handleDayClick = (day) => {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
@@ -101,25 +234,10 @@ const MonthlyProgress = () => {
       });
     }
   };
-
-
-
-
-
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const endDate = today.getTime();
-  today.setDate(today.getDate() - 27); // Display the past 4 weeks
-
-  const calendarDays = [];
-  const currentDate = new Date(today);
-
   while (currentDate.getTime() <= endDate) {
     calendarDays.push(currentDate.getDate());
     currentDate.setDate(currentDate.getDate() + 1);
   }
-
   const weeks = [];
   for (let i = 0; i < calendarDays.length; i += 7) {
     weeks.push(calendarDays.slice(i, i + 7));
@@ -129,7 +247,14 @@ const MonthlyProgress = () => {
 
 
 
-  
+
+
+
+
+
+
+
+  // LAYOUT ---------------------------------------------------
   return (
     <View style={styles.container}>
       <View>
@@ -154,25 +279,54 @@ const MonthlyProgress = () => {
         ) : (
           <Text style={styles.selectedDayWorkoutText}>Select a day to see workouts</Text>
         )}
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => openEditModal(selectedDayData.date)}
+        >
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
       </View>
+      {/* Modal for Editing Workout */}
+      {isEditModalVisible && (
+        <EditWorkoutModal
+          isVisible={isEditModalVisible}
+          date={editingDate}
+          onClose={() => setIsEditModalVisible(false)}
+          onSave={handleWorkoutUpdate}
+        />
+      )}
       <Text style={styles.workoutListTitle}>Workouts:</Text>
       <Text style={styles.workoutListTitles}> </Text>
-      <ScrollView style={styles.workoutListScroll}>
-        <View style={styles.workoutListContainer}>
-          {workoutsList.map((workout, index) => (
-            <View key={index} style={styles.workoutItem}>
-              <Text style={styles.workoutItemText}>{workout.workouts}</Text>
-              <Text style={styles.workoutItemDate}>
-                {new Date(workout.date).toLocaleDateString()}
-              </Text>
-            </View>
-          ))}
+        <ScrollView style={styles.workoutListScroll}>
+          <View style={styles.workoutListContainer}>
+            {workoutsList.map((workout, index) => (
+              <Swipeable
+                key={index}
+                renderRightActions={(progress, dragX) =>
+                  renderSwipeableRightAction(workout._id, progress, dragX)
+                }>
+                <View style={styles.workoutItem}>
+                  <Text style={styles.workoutItemText}>{workout.workouts}</Text>
+                  <Text style={styles.workoutItemDate}>
+                    {new Date(workout.date).toLocaleDateString()}
+                  </Text>
+                </View>
+              </Swipeable>
+            ))}
+          </View>
+        </ScrollView>
         </View>
-      </ScrollView>
-    </View>
+    
   );
 };
 
+
+
+
+
+
+
+// STYLE ---------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -262,6 +416,48 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 4,
     // Other styling as needed
+  },
+  container2: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    marginTop: 70, // Add margin top to the first element
+  },
+  input: {
+    width: '100%',
+    minHeight: 100,
+    backgroundColor: 'white',
+    padding: 10,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+  },
+  cancelButton: {
+    backgroundColor: '#6c757d',
+    padding: 10,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 18,
   },
 
 });
