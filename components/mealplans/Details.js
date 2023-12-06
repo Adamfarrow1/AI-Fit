@@ -52,7 +52,7 @@ const DetailsScreen = ({ route }) => {
         await storeRecipe(responseJson.choices[0].text);
 
       } else {
-        console.error('Failed to fetch data');
+        console.log('Failed to fetch data');
       }
     } catch (error) {
       console.error(error);
@@ -118,7 +118,7 @@ const DetailsScreen = ({ route }) => {
         setNutritionData(JSON.parse(response.data.updatedFoodDetails.macros))
     }catch(error){
       getPlans();
-      console.error('Error fetching macros:', error);
+      console.log('Error fetching macros:', error);
     }
   }
 

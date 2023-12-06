@@ -15,7 +15,7 @@ export default function Mealplans({ navigation }) {
 
 
 
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(1);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
   const [totalCaloriesNeeded, setTotalCal] = useState(1800);
   const [caloriesRatio, setCaloriesRatio] = useState((caloriesConsumed / totalCaloriesNeeded).toFixed(2) * 100);
@@ -170,6 +170,12 @@ export default function Mealplans({ navigation }) {
       await setReady(false);
       circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
       setCaloriesConsumed(0);
+
+      let prompt = "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+
+      if(user.diet !== ""){
+        prompt = "Can you give me three meals for a day that is under 1500 calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+      }
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
         headers: {
@@ -179,7 +185,7 @@ export default function Mealplans({ navigation }) {
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)",
+          prompt: prompt,
           max_tokens: 300,
           temperature: 1,
         }),
@@ -208,13 +214,13 @@ export default function Mealplans({ navigation }) {
 
 
   const daysOfWeek = [
-    { label: 'Mon', value: 1 },
-    { label: 'Tues', value: 2 },
-    { label: 'Wed', value: 3 },
-    { label: 'Th', value: 4 },
-    { label: 'Fri', value: 5 },
-    { label: 'Sat', value: 6 },
-    { label: 'Sun', value: 7 },
+    { label: 'Mon', value: 1, fullName:"Monday" },
+    { label: 'Tues', value: 2, fullName: "Tuesday" },
+    { label: 'Wed', value: 3, fullName: "Wednesday" },
+    { label: 'Th', value: 4, fullName: "Thursday" },
+    { label: 'Fri', value: 5, fullName: "Friday"},
+    { label: 'Sat', value: 6, fullName: "Saturday"},
+    { label: 'Sun', value: 7, fullName: "Sunday"},
   ];
 
 
@@ -305,6 +311,7 @@ export default function Mealplans({ navigation }) {
         ))}
       </View>
 
+      <Text style={styles.title}>{selectedDay !== null ? "Recommended meals for " + daysOfWeek[selectedDay - 1].fullName + ":" : null}</Text>
       <ScrollView style={styles.viewbg}>
   {mealsData.map((meal, index) => (
     <View key={index}>

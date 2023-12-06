@@ -32,6 +32,8 @@ export default function Register() {
   const height = `${heightFeet}'${heightInches}"`;
   const navigation = useNavigation();
 
+  const [dietRescrictions , setDietRescrictions] = useState('');
+
   const [res , setRes] = useState('');
 
 
@@ -59,6 +61,7 @@ export default function Register() {
         weight: weight,
         height: height,
         goal: goal,
+        diet: dietRescrictions
       });
 
       console.log('Step one done');
@@ -100,7 +103,7 @@ export default function Register() {
 
 
   const advanceStep = () => {
-    if (step < 9) {
+    if (step < 10) {
       setStep(step + 1);
     } else {
       handleRegister();
@@ -121,8 +124,10 @@ export default function Register() {
       case 5: return "Weight";
       case 6: return "Height";
       case 7: return "Fitness Goal (e.g. Weight Loss, Muscle Gain)";
-      case 8: return "Username";
-      case 9: return "Password";
+      case 8: return "Dietary Restrictions";
+      case 9: return "Username";
+      case 10: return "Password";
+      
       default: return "";
     }
   };
@@ -187,8 +192,9 @@ export default function Register() {
           );
         
       case 7: return <TextInput value={goal} style={styles.input} placeholder="Fitness Goal (e.g. Weight Loss, Muscle Gain)" onChangeText={(text) => setGoal(text)} />;
-      case 8: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
-      case 9: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
+      case 8: return <TextInput value={dietRescrictions} style={styles.input} placeholder="e.g. Lactose intolerant, High Cholesteral" onChangeText={(text) => setDietRescrictions(text)} />;
+      case 9: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
+      case 10: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
       default: return null;
     }
   };
