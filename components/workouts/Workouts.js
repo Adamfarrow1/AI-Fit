@@ -1,11 +1,10 @@
 import React, { useRef, useState, useEffect, useReducer } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal, Dimensions, FlatList, ScrollView, ActivityIndicator, PanResponder } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
-import WorkoutDetailScreen from './WorkoutDetailScreen';
 
 
 
@@ -25,16 +24,69 @@ const reducer = (state, action) => {
 
     case 'SET_AI_WORKOUT_DESCRIPTION':
       return { ...state, aiWorkoutDescription: action.payload };
-
-    // Add other case statements for different actions as needed
     default:
       return state;
   }
 };
 
+
+
+const { width } = Dimensions.get('window');
+
+
+
+const EnhancedCategoryList = ({ workoutGroups }) => {
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const renderItem = ({ item, index }) => (
+    <Animated.View
+      style={[
+        styles.categoryItem,
+        {
+          opacity: scrollY.interpolate({
+            inputRange: [-1, 0, 150 * index, 150 * (index + 2)],
+            outputRange: [1, 1, 1, 0],
+          }),
+          transform: [
+            {
+              scale: scrollY.interpolate({
+                inputRange: [-1, 0, 150 * index, 150 * (index + 1)],
+                outputRange: [1, 1, 1, 0.7],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <Text style={styles.itemText}>{item.groupName}</Text>
+    </Animated.View>
+  );
+
+  return (
+    <View style={styles.categoriesBox}>
+      <Text style={styles.subtitle}>AI Workout Series</Text>
+      <Animated.FlatList
+        data={workoutGroups}
+        keyExtractor={(item, index) => `${item.groupName}-${index}`}
+        renderItem={renderItem}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      />
+    </View>
+  );
+};
+
+
+
+
+
+
 export default function Workouts() {
 
-
+// State and Refs
   const initialState = {
     workoutGroups: [],
     workoutHistory: new Set(),
@@ -42,28 +94,91 @@ export default function Workouts() {
     showSummaryModal: false,
     aiWorkoutDescription: '',
   };
-
   const [state, dispatch] = useReducer(reducer, initialState);
   const navigation = useNavigation();
-
-  // State and Refs
+  const [lastWorkoutDate, setLastWorkoutDate] = useState(null);
+  const fadeIn = useRef(new Animated.Value(1)).current; 
+  const flipA = useRef(new Animated.Value(0)).current;
+  const [buttonExpanded, setButtonExpanded] = useState(false);
+  const buttonAnimation = useRef(new Animated.Value(1)).current;
   const routes = useRoute();
   const { params } = routes;
   const { user } = useAuth();
-  const { workoutGroups, aiWorkoutDescription, 
-    workoutHistory, streakCounter, showSummaryModal 
-  } = state;
+  const aiBoxPanResponder = useRef(null);
+  const [isFetchingWorkout, setIsFetchingWorkout] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const { workoutGroups, aiWorkoutDescription, workoutHistory, streakCounter, showSummaryModal } = state;
+  const route = useRoute();
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
+  const progress = 60;//calculateProgress();
+  const [colorAnim] = useState(new Animated.Value(0));
+  const backgroundColor = colorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(255, 0, 0, 1)', 'rgba(0, 0, 255, 1)'] // Red to Blue
+  });    
+  const animatedValue = useRef(new Animated.Value(1)).current;
+  const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
 
+
+  const handleProceedToWorkout = () => {
+    setButtonExpanded(true);
+    Animated.timing(buttonAnimation, {
+      toValue: 100, // Arbitrary large number to fill the screen
+      duration: 500,
+      useNativeDriver: false
+    }).start(() => {
+      // Navigate to the workout detail after the animation
+      navigateToWorkoutDetail(selectedWorkoutGroup);
+    });
+  };
   
-  
 
-
+  const LoadingScreen = () => (
+    <View style={styles.container}>
+      <View style={styles.helloWorldContainer}>
+        <TypeWriter
+          style={styles.textcolor}
+          minDelay={120}
+          typing={1}
+        >
+          Creating your custom AI workout...
+        </TypeWriter>
+      </View>
+      <ActivityIndicator size="large" color="#00ff00" />
+    </View>
+  );
   
 
   useEffect(() => {
+    Animated.timing(
+      fadeIn,
+      {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }
+    ).start();
+  }, [fadeIn]);
+
+  const handlePressCategory = (id) => {
+    setSelectedCategoryId(id);
+    Animated.spring(animatedValue, {
+      toValue: selectedCategoryId === id ? 1 : 1.05,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  useEffect(() => {
     const fetchWorkoutHistory = async () => {
+      if (!user._id) {
+        console.log('User ID not available, skipping fetch');
+        return;
+      }
+
       try {
-        const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+        const url = `http://${process.env.GLOBAL_IP}:3000/user/${user._id}/workoutHistory`;
+        const response = await axios.get(url);
+
         const { recentWorkouts } = response.data;
         const processedHistory = processWorkoutHistory(recentWorkouts);
         dispatch({ type: 'SET_WORKOUT_HISTORY', payload: processedHistory });
@@ -72,19 +187,65 @@ export default function Workouts() {
         console.error('Error fetching workout history:', error);
       }
     };
+
     fetchWorkoutHistory();
-  }, );
+  }, [user._id]);
+
+
+
+  const startColorAnimation = () => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(colorAnim, {
+          toValue: 1,
+          duration: 5000, // Corrected duration
+          useNativeDriver: false
+        }),
+        Animated.timing(colorAnim, {
+          toValue: 0,
+          duration: 5000,
+          useNativeDriver: false
+        })
+      ])
+    ).start();
+  };
+  useEffect(() => {
+    startColorAnimation();
+  }, []);
+
+
+
+  useEffect(() => {
+    const panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (event, gestureState) => {
+        const isSwipeUp = gestureState.dy < -50; // Adjust threshold as needed
+        const isSwipeDown = gestureState.dy > 50; // Adjust threshold as needed
   
+        if (isSwipeUp || isSwipeDown) {
+          dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+        }
+      },
+    });
+  
+    aiBoxPanResponder.current = panResponder.panHandlers;
+  }, []);
+  
+  
+  
+  
+
+
+
   const processWorkoutHistory = (workouts) => {
-    // Process and return the workout dates as a set
-    return new Set(workouts.map(workout => new Date(workout.date).toDateString()));
+    return new Set(workouts.map((workout) => new Date(workout.date).toDateString()));
   };
   
   const calculateStreak = (processedHistory) => {
     const today = new Date();
     let streak = 0;
-  
-    for (let i = 0; i <= 365; i++) { 
+
+    for (let i = 0; i <= 365; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
       if (processedHistory.has(checkDate.toDateString())) {
@@ -93,22 +254,31 @@ export default function Workouts() {
         break;
       }
     }
+
+    dispatch({ type: 'SET_STREAK_COUNTER',  })
+  }
   
-    dispatch({ type: 'SET_STREAK_COUNTER', payload: streak });
-  };
-  
 
 
 
 
 
-  //_________________________ AI WORKOUT SUMMARY ____________________________________________________________
+  //__________________________________ AI WORKOUT SUMMARY ____________________________________________________________
 
 
   //Get the SUMMARY workout
-  const fetchAIWorkout = async () => {
-    //Feed the user data
-    const userPrompt = `You are currently working as part of an ai fitness app. Your task is to provide a short, brief, 2-sentence summary of an ideal personalized workout for today for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Consider their recent workouts: ${user.workoutHistory}.`;
+  const fetchAIWorkoutSummary = async () => {
+
+    
+    const currentDate = new Date().toDateString();
+    if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
+      console.log('Workout already fetched for today');
+      return; //  TAKE USER TO THE WORKOUT
+    }
+
+
+    setIsFetchingWorkout(true);
+    const userPrompt = `You are currently working as part of an ai fitness app. Your task is to provide a short, brief, 2-sentence summary of an ideal personalized workout for today for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Consider their recent workouts: ${user.workoutHistory}. Their name is ${user.fullName}`;
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -120,7 +290,7 @@ export default function Workouts() {
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: userPrompt + " Please include why this workout is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them",
+          prompt: userPrompt + " Please include why this workout is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them. Ensure that you do not include any extra characters or symbols",
           max_tokens: 100,
           temperature: 1,
         }),
@@ -145,6 +315,8 @@ export default function Workouts() {
     } catch (error) {
       console.error("An error occurred while fetching data from OpenAI API:", error);
     }
+    setLastWorkoutDate(currentDate);//THIS NEEDS TO BE STORED SOMEWHERE
+    //setIsFetchingWorkout(false);// CREATE A WORKOUT SCREEN THAT IS JUST LIKE THE LOGIN THAT SAYS PLEASE WAIT WHILE WE MAKE U BLAHBLAHBLAH
   };
 
 
@@ -380,11 +552,9 @@ export default function Workouts() {
   
           const workoutDetails = parseAIWorkoutPlan(aiGeneratedWorkout);
           // Post the new workout group to your server/database
-          const response = await axios.post(`http://localhost:3000/user/${user._id}/updateDailyAIWorkout`, workoutDetails);
+          const response = await axios.post(`http://${process.env.GLOBAL_IP}:3000/user/${user._id}/updateDailyAIWorkout`, workoutDetails);
           if (response.status === 200) {
             console.log('Daily AI workout updated successfully');
-            navigateToWorkoutDetail(workoutDetails);
-            // Handle successful update here
           } else {or('Failed to create custom workout group');
           }
         } else {
@@ -400,9 +570,6 @@ export default function Workouts() {
     }
   };
   
-
-
-
 
   function parseAIWorkoutPlan(aiWorkoutPlan) {
     // Check if aiWorkoutPlan is undefined or not a string
@@ -427,7 +594,7 @@ export default function Workouts() {
     try {
       // Parse the JSON string into an object
       const workoutPlanObject = JSON.parse(jsonString);
-      console.log('parseAIWorkoutPlan: Successfully parsed workout plan:', workoutPlanObject);
+      console.log('parseAIWorkoutPlan: Successfully parsed workout plan');
       return workoutPlanObject;
     } catch (error) {
       console.error('parseAIWorkoutPlan: Error parsing JSON string:', error);
@@ -436,13 +603,10 @@ export default function Workouts() {
   }
   
 
+
+
   // _______________________________________________________________________________________________________
   
-
-
-
-
-
 
 
 
@@ -468,9 +632,8 @@ export default function Workouts() {
 
 
 
-  const viewPastMonth = () => {// NEEDS TO BE ADDED
-    navigation.navigate('MonthlyProgress');
-  };
+
+
 
 
 
@@ -496,7 +659,6 @@ export default function Workouts() {
 
   // NAVIGATION FUNCTION
   const navigateToWorkoutDetail = (workoutGroup) => {
-    console.log('navigateToWorkoutDetail called with:', workoutGroup);
   
     if (navigation && workoutGroup) {
       console.log('Navigating to WorkoutDetailScreen with:', workoutGroup);
@@ -510,7 +672,7 @@ export default function Workouts() {
 
 
 
-  // ----------------------------- WORKOUT PROGRAMS --------------------------------------------------------------
+  // ----------------------------- PRESET WORKOUT PROGRAMS --------------------------------------------------------------
 
   // Get the information from the database
   const fetchWorkoutGroups = async () => {
@@ -522,7 +684,6 @@ export default function Workouts() {
       console.error('Error fetching workout groups:', error);
     }
   };
-
   useEffect(() => {
     fetchWorkoutGroups();
   }, []);
@@ -557,20 +718,7 @@ export default function Workouts() {
 
   
 
-  const route = useRoute();
-  const workoutCompleted = route.params?.workoutCompleted;
-
-
   
-
-
-
-
-
-  
-
-  
-
 
 
 
@@ -587,81 +735,90 @@ export default function Workouts() {
   // ____________________________  LAYOUT  _________________________________________________________________________
   return (
     <View style={styles.container}>
-      {/* Existing content and components */}
       
-      {/* AI Recommended Workout Box */}
+
+    {/* AI Workout Summary Section */}
+    <Animated.View 
+      style={[styles.aiWorkoutBox, { transform: [{ scale: animatedValue }] }]}
+      {...aiBoxPanResponder.current}
+    >
       <TouchableOpacity 
-        style={styles.aiWorkoutBox} 
-        onPress={fetchAIWorkout} // Directly calling fetchAIWorkout on press
+        style={styles.aiWorkoutSummaryPic} 
+        onPress={() => {
+          fetchAIWorkoutSummary();
+          setShowWorkoutOptions(true); // Show buttons after fetching summary
+        }}
+        disabled={isFetchingWorkout}
       >
-        <MaterialCommunityIcons name="brain" size={24} color="aqua" />
-        <Text style={[styles.aiWorkoutText, { textDecorationLine: 'underline' }]}>
-          AI Recommended Workout
-        </Text>
+        {isFetchingWorkout ? (
+          <ActivityIndicator size="large" color="#00ff00" />
+        ) : (
+          <>
+            <MaterialCommunityIcons name="dumbbell" size={24} color="white" />
+            <Text style={styles.aiWorkoutText}>
+              {aiWorkoutDescription || 'Tap to generate your personalized workout'}
+            </Text>
+          </>
+        )}
       </TouchableOpacity>
 
-  
-      {/* Workout Categories */}
-      <View style={styles.categoriesBox}>
-        <Text style={styles.subtitle}>AI Workout Series:</Text>
-        <Animated.FlatList
-          data={workoutGroups}
-          keyExtractor={(item, index) => `${item.groupName}-${index}`} 
-          renderItem={({ item, index }) => renderCategory({ item, index })}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
-          scrollEventThrottle={16}
-        />
-      </View>
-  
-      {/* Week's Progress */}
-      <View style={styles.plansBox}>
-        <Text style={styles.subtitle}>This Week's Progress</Text>
-        <Text style={styles.streakText}>Workout Streak: {streakCounter}</Text>
-        <View style={styles.weekContainer}>
-          {Object.keys(workoutDays).map(day => (
-            <TouchableOpacity key={day} onPress={() => toggleDay(day)} style={styles.dayButton}>
-              <Text style={[styles.text, workoutDays[day] ? styles.workoutDone : styles.workoutNotDone]}>
-                {day}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {/* Conditionally render buttons */}
+      {showWorkoutOptions && (
+        <View style={styles.workoutOptions}>
+          <TouchableOpacity style={styles.button} onPress={handleCloseSummary}>
+            <Text style={styles.buttonText}>Close</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleProceedToWorkout}>
+            <Text style={styles.buttonText}>Proceed to Workout</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.monthButton} onPress={viewPastMonth}>
-          <Text style={styles.monthButtonText}>View the past month</Text>
-        </TouchableOpacity>
+      )}
+
+
+    </Animated.View>
+      {/* Progress Overview Section */}
+      <View style={styles.cardDebug}>
+        <Text style={styles.cardHeader}>Progress Overview</Text>
+        <View 
+          style={styles.progressBarContainerDebug}
+        />
+        <View 
+          style={[styles.progressBarDebug, { width: `${progress}%` }]} 
+        />
+        <Text style={styles.cardContent}>Streak: {streakCounter} days</Text>
       </View>
   
-      {/* AI Workout Summary Modal */}
-      {
-        showSummaryModal &&
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showSummaryModal}
-          onRequestClose={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' }) }
-          style={{ flex: 1 }} // Add this line to ensure the modal takes up the entire screen
-        >
-          <View style={styles.fullScreenModalView}>
-            <Text style={styles.modalText}>{aiWorkoutDescription}</Text>
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => {
-                dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-                createCustomWorkout();
-              }}
-            >
-              <Text style={styles.textStyle}>Proceed to Workout</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-      }
-    </View>
-  );
+
+
+
+
+
+      {/* Workout Categories Section */}
+      <Text style={styles.sectionTitle}>Workout Categories</Text>
+      <FlatList
+        data={workoutGroups}
+        keyExtractor={(item, index) => `${item.groupName}-${index}`}
+        renderItem={({ item }) => (
+          <Text style={styles.categoryText}>{item.groupName}</Text>
+        )}
+      />
   
+
+
+
+
+      {/* Debugging Text */}
+      <Text style={styles.debugText}>Debug: Selected Category ID: {selectedCategoryId}</Text>
+      
+    </View>
+
+  );
+
 };
+  
+  
+  
+  
 
 
 
@@ -674,271 +831,306 @@ export default function Workouts() {
 
 
 
-// STYLES ___________________________________________________________________________
+
+
 
 
 
 const styles = StyleSheet.create({
+
+  workoutOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+  },
+
+  // ___________________________________ BASICS ________________________________________________
+  debugText: {
+    fontSize: 16,
+    color: 'red',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0d0d0d',
+    backgroundColor: 'black', // Dark background
     padding: 20,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 10,
-    textAlign: 'center'
+    color: '#4FC3F7', // Bright blue for contrast
+    textShadowColor: 'rgba(0, 255, 255, 0.75)', // Neon-like shadow
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4FC3F7', // Bright futuristic color
+    marginBottom: 15,
+    textShadowColor: 'rgba(0, 255, 255, 0.75)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 5,
   },
   text: {
     fontSize: 16,
-    color: '#d0d0d0'
-  },
-  trackingBox: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    padding: 20,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a'
-  },
-  categoriesBox: {
-    flex: 1.9,
-    marginBottom: 20,
-    marginTop: 20,
-    padding: 30,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a'
-  },
-  weekContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 10,
-    width: '100%',
-  },
-  dayButton: {
-    width: '10%',
-    paddingVertical: 8,
-    alignItems: 'center',
-    margin: 5,
-    borderWidth: 1.5,
-    borderColor: 'aqua',
-    borderRadius: 5,
-    backgroundColor: '#1a1a1a'
-  },
-  workoutDone: {
-    textDecorationLine: 'line-through',
-    color: '#27ae60',
-    textAlign: 'center',
-    fontWeight: '600'
-  },
-  workoutNotDone: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: '600'
-  },
-  monthButton: {
-    marginTop: 10,
-    marginBottom: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-    backgroundColor: 'aqua',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  monthButtonText: {
-    color: 'black',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  workoutGroupContainer: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-  },
-  groupName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  workoutContainer: {
-    padding: 8,
-    backgroundColor: '#e7e7e7',
-    borderRadius: 5,
-    marginTop: 5,
-  },
-  workoutName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
-  },
-  workoutDetail: {
-    fontSize: 14,
-    color: '#666',
-  },
-  noWorkoutsText: {
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 20,
-  },
-  categoryItem: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: 'grey',
-    borderRadius: 10,
-  },
-  categoryText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
-    textAlign: 'center'
-  },
-
-  aiWorkoutBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    margin: 4,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a', 
-    shadowColor: '#000',
-    shadowOffset: {
-    width: 0,
-    height: 4,
-  },
-
-  aiWorkoutBoxExpanded: {
-    height: 'auto', 
-  },
-  aiWorkoutBoxCollapsed: {
-    height: 100, 
-  },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8, 
-  },
-    aiWorkoutText: {
-    fontSize: 23,
-    fontWeight: 'bold',
-    color: 'aqua', 
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  descriptionText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: 'white', 
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  workoutItemContainer: {
-    backgroundColor: '#fff', 
-    borderRadius: 10, 
-    padding: 15,
-    marginVertical: 8, 
-    marginHorizontal: 16,
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23, 
-    shadowRadius: 2.62, 
-    elevation: 4, 
-  },
-
-  workoutTitle: {
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#333', 
-    marginBottom: 8, 
-  },
-
-  workoutDescription: {
-    fontSize: 14, 
-    color: '#666', 
-    lineHeight: 20, 
-  },
-
-  selectButton: {
-    backgroundColor: '#3a90e2',
-    padding: 10, 
-    borderRadius: 5, 
-    marginTop: 10, 
-    alignItems: 'center', 
-  },
-
-  buttonText: {
-    color: '#fff', 
-    fontWeight: '600', 
-  },
-
-  detailButtonText: {
-    color: '#fff', 
-    fontWeight: '300',
-  },
-
-  streakText: {
-    fontSize: 16,
-    color: '#d0d0d0',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-  modalView: {
-    margin: 5,
-    backgroundColor: "black",
-    borderRadius: 20,
-    borderColor: "aqua",
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
-  },
-  modalText: {
-    marginBottom: 15,
-    margin: 30,
-    textAlign: "center",
-    color: 'white', 
-    fontSize: 16, 
+    color: '#E0E0E0',
   },
   button: {
-    borderRadius: 20,
+    backgroundColor: '#00bcd4', // Neon-like blue
+    padding: 15,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#29B6F6', // Border color
+    shadowColor: '#29B6F6', // Shadow color
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 5,
+    elevation: 4,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#DDD',
     padding: 10,
-    elevation: 2,
-    marginTop: 10, 
+    borderRadius: 5,
+    marginBottom: 10,
+    fontSize: 16,
   },
-  buttonClose: {
-    backgroundColor: "aqua", 
-  },
-  textStyle: {
-    color: "black",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  fullScreenModalView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)', 
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 
-});
+
+
+
+
+
+   // ___________________________________ CARD ________________________________________________
+
+  card: {
+    backgroundColor: '#263238',
+    borderRadius: 8,
+    padding: 15,
+    marginVertical: 10,
+    // shadowColor: '#29B6F6',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.25,
+    // shadowRadius: 4,
+    elevation: 5,
+  },
+  cardHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4FC3F7',
+    marginBottom: 8,
+  },
+  cardContent: {
+    fontSize: 14,
+    color: '#E0E0E0',
+  },
+  categoryCard: {
+    backgroundColor: '#263238',
+    borderRadius: 12,
+    padding: 20,
+    marginVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#4FC3F7',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  categoryText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#E0E0E0',
+    textShadowColor: '#4FC3F7',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+  },
+
+  // slider: {
+  //   height: 40,
+  //   borderRadius: 5,
+  //   backgroundColor: '#E0E0E0',
+  // },
+  // switch: {
+  //   transform: [{ scaleX: .8 }, { scaleY: .8 }],
+  //   marginRight: 10,
+  // },
+
+  // navBar: {
+  //   backgroundColor: '#003366',
+  //   height: 60,
+  //   justifyContent: 'center',
+  //   paddingHorizontal: 15,
+  // },
+  // navItem: {
+  //   color: '#FFF',
+  //   fontSize: 18,
+  // },
+
+
+
+
+
+
+// ______________________________  MODAL  ___________________________________________
+  
+  // modalContainer: {
+  //   flex: 1,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   backgroundColor: 'rgba(0,0,0,0.7)', // Semi-transparent background
+  // },
+  // modalContent: {
+  //   backgroundColor: '#37474F',
+  //   padding: 20,
+  //   borderRadius: 10,
+  //   shadowColor: '#29B6F6',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.3,
+  //   shadowRadius: 4,
+  //   elevation: 5,
+  // },
+  // modalHeader: {
+  //   fontSize: 20,
+  //   fontWeight: 'bold',
+  //   color: '#4FC3F7',
+  //   marginBottom: 10,
+  // },
+  // modalView: {
+  //   margin: 20,
+  //   backgroundColor: 'rgba(28, 28, 30, 0.9)', // Dark background with slight opacity
+  //   borderRadius: 20,
+  //   padding: 35,
+  //   alignItems: 'center',
+  //   shadowColor: '#00FFDD', // Bright neon-like shadow color
+  //   shadowOffset: {
+  //     width: 0,
+  //     height: 2
+  //   },
+  //   shadowOpacity: 0.5,
+  //   shadowRadius: 4,
+  //   elevation: 10,
+  //   borderColor: '#00FFDD', // Neon border color
+  //   borderWidth: 2,
+  //   borderStyle: 'solid',
+  //   // Adding a gradient background
+  //   overflow: 'hidden',
+  // },
+  // gradientBackground: {
+  //   position: 'absolute',
+  //   left: 0,
+  //   right: 0,
+  //   top: 0,
+  //   bottom: 0,
+  //   borderRadius: 20,
+  // },
+  // modalText: {
+  //   color: '#E0E0E0', // Light text for contrast
+  //   textAlign: 'center',
+  //   fontSize: 18,
+  //   fontWeight: 'bold',
+  //   marginVertical: 10,
+  // },
+  
+  
+
+
+
+
+
+
+  progressBarContainer: {
+    marginTop: 20,
+    backgroundColor: 'rgba(55, 71, 79, 0.5)', // Semi-transparent background
+    borderRadius: 10,
+    height: 20,
+    overflow: 'hidden',
+    paddingHorizontal: 2, // Add some padding for a border effect
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: 'linear-gradient(to right, #4FC3F7, #2196F3)', // Gradient background
+    width: '0%', // Dynamically update this value based on progress
+    position: 'relative', // Position for animation
+    overflow: 'hidden', // Hide overflowing content
+  },
+  // progressBarFill: {
+  //   height: '100%',
+  //   borderRadius: 10,
+  //   backgroundColor: 'rgba(39, 174, 96, 0.9)', // Slightly transparent fill
+  //   position: 'absolute', // Position for animation
+  //   top: 0,
+  //   left: 0,
+  // },
+  
+
+
+
+
+
+
+
+
+  // listItem: {
+  //   paddingVertical: 15,
+  //   paddingHorizontal: 20,
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: '#E0E0E0',
+  // },
+  // listItemText: {
+  //   fontSize: 16,
+  //   color: '#333',
+  // },
+  // divider: {
+  //   height: 1,
+  //   backgroundColor: '#E0E0E0',
+  //   marginVertical: 10,
+  // },
+  // animatedView: {
+  //   transform: [{ scale: 1.1 }],
+  //   opacity: 0.8,
+  // },  
+  
+
+  aiWorkoutBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: '#37474F', // Dark shade for the futuristic theme
+    borderStyle: 'groove',
+    borderWidth: 2,
+    borderColor: '#29B6F6', // Vibrant border color
+    shadowColor: '#29B6F6', // Shadow color matching border
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  aiWorkoutText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#29B6F6', 
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 255, 255, 0.75)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 7,
+  },
+  aiWorkoutSummaryPic: {
+    alignItems: 'center',
+    justifyContent: 'center',
+
+  },
+  
+  
+})
+
+
