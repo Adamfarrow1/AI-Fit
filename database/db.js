@@ -109,6 +109,48 @@ app.post('/user/:userId/recordWorkout', async (req, res) => {
   }
 });
 
+// Add this route in db.js
+
+app.get('/user/:userId/personalInfo', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await UserModel.findById(userId).select('-password'); // Exclude password for security
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user information:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+app.post('/user/:userId/updatePersonalInfo', async (req, res) => {
+  const { userId } = req.params;
+  const updatedInfo = req.body;
+
+  try {
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: updatedInfo },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user info:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+
 
 
 app.post('/user/:userId/updateDailyAIWorkout', async (req, res) => {
