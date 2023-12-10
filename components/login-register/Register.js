@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
+  Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
@@ -61,6 +61,7 @@ export default function Register() {
         weight: weight,
         height: height,
         goal: goal,
+        activityLevel: activityLevel,
         diet: dietRescrictions
       });
 
@@ -103,7 +104,7 @@ export default function Register() {
 
 
   const advanceStep = () => {
-    if (step < 10) {
+    if (step < 11) {
       setStep(step + 1);
     } else {
       handleRegister();
@@ -125,13 +126,14 @@ export default function Register() {
       case 6: return "Height";
       case 7: return "Fitness Goal (e.g. Weight Loss, Muscle Gain)";
       case 8: return "Dietary Restrictions";
-      case 9: return "Username";
-      case 10: return "Password";
+      case 9: return "Activity Level";
+      case 10: return "Username";
+      case 11: return "Password";
       
       default: return "";
     }
   };
-
+  const [activityLevel, setActivityLevel] = useState('sedentary');
   const renderInput = () => {
     switch(step) {
       case 1: return <TextInput value={fullName} style={styles.input} placeholder="Full Name" onChangeText={(text) => setFullName(text)} />;
@@ -193,8 +195,20 @@ export default function Register() {
         
       case 7: return <TextInput value={goal} style={styles.input} placeholder="Fitness Goal (e.g. Weight Loss, Muscle Gain)" onChangeText={(text) => setGoal(text)} />;
       case 8: return <TextInput value={dietRescrictions} style={styles.input} placeholder="e.g. Lactose intolerant, High Cholesteral" onChangeText={(text) => setDietRescrictions(text)} />;
-      case 9: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
-      case 10: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
+      case 9: return <Picker
+                        selectedValue={activityLevel}
+                        style={styles.picker}
+                        itemStyle={{ color: 'white' }}
+                        onValueChange={(itemValue) => setActivityLevel(itemValue)}
+                      >
+                        <Picker.Item label="Inactive" value="sedentary" />
+                        <Picker.Item label="Lightly Active" value="lightlyActive" />
+                        <Picker.Item label="Moderately Active" value="moderatelyActive" />
+                        <Picker.Item label="Very Active" value="veryActive" />
+                        <Picker.Item label="Extra Active" value="extraActive" />
+                      </Picker>
+      case 10: return <TextInput value={username} style={styles.input} placeholder="Username" onChangeText={(text) => setUsername(text)} />;
+      case 11: return <TextInput value={password} style={styles.input} placeholder="Password" secureTextEntry={true} onChangeText={(text) => setPassword(text)} />;
       default: return null;
     }
   };

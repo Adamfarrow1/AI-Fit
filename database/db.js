@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema({
       height: String,
       goal: String,
       diet: String,
+      activityLevel: String,
       workoutHistory: [{
         date: Date,
         workouts: String,
@@ -300,12 +301,13 @@ app.post('/registerUser', async (req, res) => {
       weight,
       height,
       goal,
-      diet
+      diet,
+      activityLevel
     } = req.body;
 
     // Log the extracted data
     console.log("Extracted data:", {
-      password, userName, fullName, email, age, gender, weight, height, goal, diet
+      password, userName, fullName, email, age, gender, weight, height, goal, diet,activityLevel
     });
 
 
@@ -319,7 +321,8 @@ app.post('/registerUser', async (req, res) => {
       weight,
       height,
       goal,
-      diet
+      diet,
+      activityLevel
     });
 
     // Log the user object before saving

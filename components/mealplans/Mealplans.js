@@ -37,6 +37,69 @@ export default function Mealplans({ navigation }) {
   }, [caloriesConsumed]);
 
 
+  const convertToCentimeters = (height) => {
+    // Extract feet and inches from the input string
+    const [feetStr, inchesStr] = height.split("'");
+    const feet = parseFloat(feetStr) || 0;
+    const inches = parseFloat(inchesStr) || 0;
+
+    // Convert feet and inches to centimeters
+    const centimeters = (feet * 30.48) + (inches * 2.54);
+
+    return centimeters.toFixed(2);
+  };
+
+
+  const calculateTDEE = () => {
+    // Convert weight and height to numbers
+    const weightValue = parseFloat(user.weight) * 0.453592;
+    const heightValue = parseFloat(convertToCentimeters(user.height));
+    console.log("this is the vlaues for TDEE:");
+    console.log(weightValue);
+    console.log(heightValue);
+    const age = parseInt(user.age);
+    console.log(age);
+
+    if (isNaN(weightValue) || isNaN(heightValue) || isNaN(age)) {
+      alert('Please enter valid numeric values for weight, height, and age.');
+      return;
+    }
+
+    let bmr;
+
+    // Calculate BMR based on gender
+    if (user.gender === 'Male') {
+      console.log("this is a male")
+      bmr = (10 * weightValue) + (6.25 * heightValue) - (5 * age) + 5;
+    } else {
+      bmr =  (10 * weightValue) + (6.25 * heightValue) - (5 * age) - 161;
+    }
+
+    // Adjust BMR based on activity level
+    console.log(user.activityLevel);
+    console.log(bmr);
+    switch (user.activityLevel) {
+      case 'sedentary':
+        setTotalCal(Math.round(bmr * 1.2));
+        break;
+      case 'lightlyActive':
+        setTotalCal(Math.round(bmr * 1.375));
+        break;
+      case 'moderatelyActive':
+        setTotalCal(Math.round(bmr * 1.55));
+        break;
+      case 'veryActive':
+        setTotalCal(Math.round(bmr * 1.725));
+        break;
+      case 'extraActive':
+        setTotalCal(Math.round(bmr * 1.9));
+        break;
+      default:
+        setTotalCal(null);
+    }
+  };
+
+
 
 
   
@@ -171,10 +234,10 @@ export default function Mealplans({ navigation }) {
       circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
       setCaloriesConsumed(0);
 
-      let prompt = "Can you give me three meals for a day that is under 1500 calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+      let prompt = "Can you give me three meals for the day under " + totalCaloriesNeeded + " total calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
 
       if(user.diet !== ""){
-        prompt = "Can you give me three meals for a day that is under 1500 calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+        prompt = "Can you give me three meals for me for the day under " + totalCaloriesNeeded + " total calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
       }
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -250,7 +313,7 @@ export default function Mealplans({ navigation }) {
       console.log("this is a fresh page-------------------------------------------------")
       // Call your function only once
        getMeals();
-      
+       calculateTDEE();
       // Mark that the effect has run
       setHasFocusEffectRun(true);
     }
