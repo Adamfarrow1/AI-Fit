@@ -16,6 +16,8 @@ import { useAuth } from '../../context/authcontext';
 import { GLOBAL_IP } from 'react-native-dotenv';
 
 export default function Login() {
+
+  
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -26,21 +28,20 @@ export default function Login() {
 
     try {
       console.log(GLOBAL_IP);
-      const response = await axios.post('http://'+ GLOBAL_IP + ':3000/login', {
+      const response = await axios.post('http://'+ process.env.GLOBAL_IP + ':3000/login', {
         userName: username,
         password: password,
       });
 
       login(response.data.user);
 
-      console.log("Login response data:", response.data);
+      console.log("Logged into user account:", response.data.user.fullName);
 
       if (response.data.message === 'Login successful') {
         console.log('User login successful');
         setUsername('');
         setPassword('');
         navigation.navigate("Home");
-
       }
     } catch (error) {
       if (error.response) {
