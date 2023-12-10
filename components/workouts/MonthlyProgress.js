@@ -26,11 +26,11 @@ const MonthlyProgress = () => {
   useEffect(() => {
     const fetchWorkoutHistory = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+        const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/user/${user._id}/workoutHistory`);
         const { recentWorkouts } = response.data;
         processWorkoutData(recentWorkouts);
       } catch (error) {
-        console.error('Error fetching workout history:', error);
+        console.error('Error fetching workout history1:', error);
       }
     };
 
@@ -83,16 +83,16 @@ const MonthlyProgress = () => {
       
 
       // Send a POST request to update the workout for the specific user and date
-      const response = await axios.post(`http://localhost:3000/user/${user._id}/recordWorkout`, data);
+      const response = await axios.post(`http://${process.env.GLOBAL_IP}:3000/user/${user._id}/recordWorkout`, data);
 
       if (response.status === 200) {
         const fetchWorkoutHistory = async () => {
           try {
-            const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+            const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/user/${user._id}/workoutHistory`);
             const { recentWorkouts } = response.data;
             processWorkoutData(recentWorkouts);
           } catch (error) {
-            console.error('Error fetching workout history:', error);
+            console.error('Error fetching workout history2:', error);
           }
         };
         fetchWorkoutHistory();
@@ -172,17 +172,17 @@ const MonthlyProgress = () => {
   const handleDeleteWorkout = async (workoutId) => {
     try {
       // Send DELETE request to the server
-      const response = await axios.delete(`http://localhost:3000/deleteWorkout/${workoutId}`);
+      const response = await axios.delete(`http://${process.env.GLOBAL_IP}:3000/deleteWorkout/${workoutId}`);
   
       if (response.status === 200) {
         // Filter out the deleted workout from the workoutsList state
         const fetchWorkoutHistory = async () => {
           try {
-            const response = await axios.get(`http://localhost:3000/user/${user._id}/workoutHistory`);
+            const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/user/${user._id}/workoutHistory`);
             const { recentWorkouts } = response.data;
             processWorkoutData(recentWorkouts);
           } catch (error) {
-            console.error('Error fetching workout history:', error);
+            console.error('Error fetching workout history3:', error);
           }
         };
         fetchWorkoutHistory();
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 10,
-    backgroundColor: 'grey',
+    backgroundColor: '#121212', // Dark background
   },
   calendarRow: {
     flexDirection: 'row',
@@ -341,12 +341,12 @@ const styles = StyleSheet.create({
   calendarDayContainer: {
     flex: 1,
     aspectRatio: 1, // To maintain a square shape
-    backgroundColor: '#3a90e2',
+    backgroundColor: '#1e88e5', // Darker shade of blue
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
     margin: 4,
-    borderColor: 'black',
+    borderColor: '#303F9F', // Contrast border color
     borderWidth: 1,
   },
   calendarDay: {
@@ -355,14 +355,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   workoutDay: {
-    backgroundColor: 'green',
+    backgroundColor: '#388E3C', // Darker shade of green
   },
   calendarDayText: {
     fontWeight: 'bold',
     fontSize: 18,
+    color: '#E0E0E0', // Lighter text for better readability
   },
   workoutDayText: {
-    color: 'white',
+    color: '#FFFFFF',
   },
   workoutListScroll: {
     flex: 1,
@@ -375,70 +376,73 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 10,
+    color: '#BDBDBD', // Light grey text
   },
   workoutListTitles: {
     fontSize: 10,
     fontWeight: 'bold',
     marginTop: 5,
+    color: '#BDBDBD',
   },
   workoutItem: {
-  marginBottom: 10,
-  backgroundColor: '#fff',
-  borderRadius: 10,
-  padding: 10,
-  borderColor: 'lightblue',
-  borderWidth: 4,
-  borderBottomColor: 'lightblue', // Set the color of the divider
-},
+    marginBottom: 10,
+    backgroundColor: '#424242', // Darker item background
+    borderRadius: 10,
+    padding: 10,
+    borderColor: '#1e88e5', // Brighter border color for contrast
+    borderWidth: 4,
+    borderBottomColor: '#29B6F6',
+  },
   workoutItemText: {
     fontSize: 16,
-    color: '#333',
+    color: '#FFF', // White text for contrast
   },
   workoutItemDate: {
     fontSize: 12,
-    color: '#888',
+    color: '#BDBDBD', // Light grey text
   },
   selectedDayWorkoutContainer: {
     padding: 10,
     marginTop: 20,
-    backgroundColor: '#ddd', // Example background color
-    // Other styling as needed
+    backgroundColor: '#263238', // Darker background
   },
   selectedDayWorkoutText: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 2.5,
-    // Other text styling as needed
+    color: '#FFF', // White text
   },
   selectedDayWorkoutDate: {
     fontSize: 10,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 4,
-    // Other styling as needed
+    color: '#FFF', // White text
   },
   container2: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#37474F', // Dark background
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop: 70, // Add margin top to the first element
+    marginTop: 70,
+    color: '#ECEFF1', // Light text color
   },
   input: {
     width: '100%',
     minHeight: 100,
-    backgroundColor: 'white',
+    backgroundColor: '#424242', // Dark input background
     padding: 10,
-    borderColor: '#ddd',
+    borderColor: '#757575', // Dark border color
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 20,
+    color: '#E0E0E0', // Light text color for input
   },
   button: {
     backgroundColor: '#007bff',
@@ -459,7 +463,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
   },
-
 });
 
 export default MonthlyProgress;
