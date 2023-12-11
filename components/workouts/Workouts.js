@@ -1,5 +1,19 @@
 import React, { useRef, useState, useEffect, useReducer } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal, Dimensions, FlatList, ScrollView, ActivityIndicator, PanResponder } from 'react-native';
+import { View, 
+         Text, 
+         StyleSheet, 
+         TouchableOpacity, 
+         Animated, 
+         Modal, 
+         Dimensions, 
+         FlatList, 
+         ScrollView, 
+         SafeAreaView,
+         ImageBackground,
+         useWindowDimensions,
+         ActivityIndicator, 
+         PanResponder,
+        } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv';
@@ -92,32 +106,23 @@ export default function Workouts() {
     workoutHistory: new Set(),
     streakCounter: 0,
     showSummaryModal: false,
-    aiWorkoutDescription: '',
   };
   const [state, dispatch] = useReducer(reducer, initialState);
   const navigation = useNavigation();
   const [lastWorkoutDate, setLastWorkoutDate] = useState(null);
-  const fadeIn = useRef(new Animated.Value(1)).current; 
-  const flipA = useRef(new Animated.Value(0)).current;
-  const [buttonExpanded, setButtonExpanded] = useState(false);
   const buttonAnimation = useRef(new Animated.Value(1)).current;
   const routes = useRoute();
   const { params } = routes;
   const { user } = useAuth();
-  const aiBoxPanResponder = useRef(null);
   const [isFetchingWorkout, setIsFetchingWorkout] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const { workoutGroups, aiWorkoutDescription, workoutHistory, streakCounter, showSummaryModal } = state;
   const route = useRoute();
   const [showLoadingScreen, setShowLoadingScreen] = useState(false);
   const progress = 60;//calculateProgress();
-  const [colorAnim] = useState(new Animated.Value(0));
-  const backgroundColor = colorAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['rgba(255, 0, 0, 1)', 'rgba(0, 0, 255, 1)'] // Red to Blue
-  });    
   const animatedValue = useRef(new Animated.Value(1)).current;
   const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
+  const [modalAnimation] = useState(new Animated.Value(0)); // 0 represents the initial value
+
 
 
   const handleProceedToWorkout = () => {
@@ -133,40 +138,6 @@ export default function Workouts() {
   };
   
 
-  const LoadingScreen = () => (
-    <View style={styles.container}>
-      <View style={styles.helloWorldContainer}>
-        <TypeWriter
-          style={styles.textcolor}
-          minDelay={120}
-          typing={1}
-        >
-          Creating your custom AI workout...
-        </TypeWriter>
-      </View>
-      <ActivityIndicator size="large" color="#00ff00" />
-    </View>
-  );
-  
-
-  useEffect(() => {
-    Animated.timing(
-      fadeIn,
-      {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }
-    ).start();
-  }, [fadeIn]);
-
-  const handlePressCategory = (id) => {
-    setSelectedCategoryId(id);
-    Animated.spring(animatedValue, {
-      toValue: selectedCategoryId === id ? 1 : 1.05,
-      useNativeDriver: true,
-    }).start();
-  };
 
   useEffect(() => {
     const fetchWorkoutHistory = async () => {
@@ -187,55 +158,8 @@ export default function Workouts() {
         console.error('Error fetching workout history:', error);
       }
     };
-
     fetchWorkoutHistory();
   }, [user._id]);
-
-
-
-  const startColorAnimation = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(colorAnim, {
-          toValue: 1,
-          duration: 5000, // Corrected duration
-          useNativeDriver: false
-        }),
-        Animated.timing(colorAnim, {
-          toValue: 0,
-          duration: 5000,
-          useNativeDriver: false
-        })
-      ])
-    ).start();
-  };
-  useEffect(() => {
-    startColorAnimation();
-  }, []);
-
-
-
-  useEffect(() => {
-    const panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (event, gestureState) => {
-        const isSwipeUp = gestureState.dy < -50; // Adjust threshold as needed
-        const isSwipeDown = gestureState.dy > 50; // Adjust threshold as needed
-  
-        if (isSwipeUp || isSwipeDown) {
-          dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-        }
-      },
-    });
-  
-    aiBoxPanResponder.current = panResponder.panHandlers;
-  }, []);
-  
-  
-  
-  
-
-
 
   const processWorkoutHistory = (workouts) => {
     return new Set(workouts.map((workout) => new Date(workout.date).toDateString()));
@@ -272,7 +196,8 @@ export default function Workouts() {
     
     const currentDate = new Date().toDateString();
     if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
-      console.log('Workout already fetched for today');
+      console.log('Workout already fetched for today, displaying todays message...');
+      dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
       return; //  TAKE USER TO THE WORKOUT
     }
 
@@ -301,7 +226,7 @@ export default function Workouts() {
   
         // Check if the response contains the expected data
         if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
-          console.log("OpenAI API Response:", responseJson.choices[0].text);
+          console.log("AI Workout Summary:", responseJson.choices[0].text);
           dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload: responseJson.choices[0].text });
           dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
         } else {
@@ -716,120 +641,67 @@ export default function Workouts() {
     );
   };
 
+  const handleCloseSummary = () => {
+    dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+  };
   
+  //____________________________  ANIMATIONS ______________________________________
 
+  const animateModal = () => {
+    Animated.timing(modalAnimation, {
+      toValue: 1, // Fully visible
+      duration: 500, // Duration in milliseconds
+      useNativeDriver: true, // Use native driver for better performance
+    }).start();
+  };
   
-
-
-
-
-
-
-
-
-
-
-
 
 
   // ____________________________  LAYOUT  _________________________________________________________________________
-  return (
-    <View style={styles.container}>
-      
 
-    {/* AI Workout Summary Section */}
-    <Animated.View 
-      style={[styles.aiWorkoutBox, { transform: [{ scale: animatedValue }] }]}
-      {...aiBoxPanResponder.current}
+
+
+
+  
+
+  const renderSummaryModal = () => (
+    <Modal
+      visible={state.showSummaryModal}
+      onRequestClose={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
+      transparent={true} // Make the modal transparent to allow for custom background
+      animationType="slide" // Smooth slide animation
     >
-      <TouchableOpacity 
-        style={styles.aiWorkoutSummaryPic} 
-        onPress={() => {
-          fetchAIWorkoutSummary();
-          setShowWorkoutOptions(true); // Show buttons after fetching summary
-        }}
-        disabled={isFetchingWorkout}
-      >
-        {isFetchingWorkout ? (
-          <ActivityIndicator size="large" color="#00ff00" />
-        ) : (
-          <>
-            <MaterialCommunityIcons name="dumbbell" size={24} color="white" />
-            <Text style={styles.aiWorkoutText}>
-              {aiWorkoutDescription || 'Tap to generate your personalized workout'}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
-
-      {/* Conditionally render buttons */}
-      {showWorkoutOptions && (
-        <View style={styles.workoutOptions}>
-          <TouchableOpacity style={styles.button} onPress={handleCloseSummary}>
-            <Text style={styles.buttonText}>Close</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleProceedToWorkout}>
-            <Text style={styles.buttonText}>Proceed to Workout</Text>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>{state.aiWorkoutDescription}</Text>
+          <TouchableOpacity 
+            style={styles.closeButton} 
+            onPress={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
         </View>
-      )}
-
-
-    </Animated.View>
-      {/* Progress Overview Section */}
-      <View style={styles.cardDebug}>
-        <Text style={styles.cardHeader}>Progress Overview</Text>
-        <View 
-          style={styles.progressBarContainerDebug}
-        />
-        <View 
-          style={[styles.progressBarDebug, { width: `${progress}%` }]} 
-        />
-        <Text style={styles.cardContent}>Streak: {streakCounter} days</Text>
       </View>
-  
+    </Modal>
+  );
 
 
-
-
-
-      {/* Workout Categories Section */}
-      <Text style={styles.sectionTitle}>Workout Categories</Text>
-      <FlatList
-        data={workoutGroups}
-        keyExtractor={(item, index) => `${item.groupName}-${index}`}
-        renderItem={({ item }) => (
-          <Text style={styles.categoryText}>{item.groupName}</Text>
-        )}
-      />
-  
-
-
-
-
-      {/* Debugging Text */}
-      <Text style={styles.debugText}>Debug: Selected Category ID: {selectedCategoryId}</Text>
-      
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.summaryButton} 
+        onPress={fetchAIWorkoutSummary}
+      >
+        <Text style={styles.summaryButtonText}>Show Daily Workout Summary</Text>
+      </TouchableOpacity>
+      {renderSummaryModal()}
     </View>
-
   );
 
 };
   
   
   
-  
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -838,299 +710,93 @@ export default function Workouts() {
 
 const styles = StyleSheet.create({
 
-  workoutOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-  },
-
-  // ___________________________________ BASICS ________________________________________________
-  debugText: {
-    fontSize: 16,
-    color: 'red',
-  },
   container: {
     flex: 1,
-    backgroundColor: 'black', // Dark background
     padding: 20,
+    backgroundColor: '#161618',
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4FC3F7', // Bright blue for contrast
-    textShadowColor: 'rgba(0, 255, 255, 0.75)', // Neon-like shadow
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4FC3F7', // Bright futuristic color
-    marginBottom: 15,
-    textShadowColor: 'rgba(0, 255, 255, 0.75)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 5,
-  },
-  text: {
-    fontSize: 16,
-    color: '#E0E0E0',
-  },
-  button: {
-    backgroundColor: '#00bcd4', // Neon-like blue
-    padding: 15,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#29B6F6', // Border color
-    shadowColor: '#29B6F6', // Shadow color
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 5,
-    elevation: 4,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#DDD',
+
+
+
+
+
+  //________________________  SUMMARY BUTTON ____________________________________
+  summaryButton: {
+    marginTop: 1,
+    backgroundColor: '#0f0f0f', // Dark color for high-tech theme
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
-    fontSize: 16,
-  },
-  errorText: {
-    color: 'red',
-    marginBottom: 10,
-  },
-
-
-
-
-
-
-   // ___________________________________ CARD ________________________________________________
-
-  card: {
-    backgroundColor: '#263238',
-    borderRadius: 8,
-    padding: 15,
-    marginVertical: 10,
-    // shadowColor: '#29B6F6',
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.25,
-    // shadowRadius: 4,
-    elevation: 5,
-  },
-  cardHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4FC3F7',
-    marginBottom: 8,
-  },
-  cardContent: {
-    fontSize: 14,
-    color: '#E0E0E0',
-  },
-  categoryCard: {
-    backgroundColor: '#263238',
-    borderRadius: 12,
-    padding: 20,
-    marginVertical: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#4FC3F7',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  categoryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#E0E0E0',
-    textShadowColor: '#4FC3F7',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
-  },
-
-  // slider: {
-  //   height: 40,
-  //   borderRadius: 5,
-  //   backgroundColor: '#E0E0E0',
-  // },
-  // switch: {
-  //   transform: [{ scaleX: .8 }, { scaleY: .8 }],
-  //   marginRight: 10,
-  // },
-
-  // navBar: {
-  //   backgroundColor: '#003366',
-  //   height: 60,
-  //   justifyContent: 'center',
-  //   paddingHorizontal: 15,
-  // },
-  // navItem: {
-  //   color: '#FFF',
-  //   fontSize: 18,
-  // },
-
-
-
-
-
-
-// ______________________________  MODAL  ___________________________________________
-  
-  // modalContainer: {
-  //   flex: 1,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   backgroundColor: 'rgba(0,0,0,0.7)', // Semi-transparent background
-  // },
-  // modalContent: {
-  //   backgroundColor: '#37474F',
-  //   padding: 20,
-  //   borderRadius: 10,
-  //   shadowColor: '#29B6F6',
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowOpacity: 0.3,
-  //   shadowRadius: 4,
-  //   elevation: 5,
-  // },
-  // modalHeader: {
-  //   fontSize: 20,
-  //   fontWeight: 'bold',
-  //   color: '#4FC3F7',
-  //   marginBottom: 10,
-  // },
-  // modalView: {
-  //   margin: 20,
-  //   backgroundColor: 'rgba(28, 28, 30, 0.9)', // Dark background with slight opacity
-  //   borderRadius: 20,
-  //   padding: 35,
-  //   alignItems: 'center',
-  //   shadowColor: '#00FFDD', // Bright neon-like shadow color
-  //   shadowOffset: {
-  //     width: 0,
-  //     height: 2
-  //   },
-  //   shadowOpacity: 0.5,
-  //   shadowRadius: 4,
-  //   elevation: 10,
-  //   borderColor: '#00FFDD', // Neon border color
-  //   borderWidth: 2,
-  //   borderStyle: 'solid',
-  //   // Adding a gradient background
-  //   overflow: 'hidden',
-  // },
-  // gradientBackground: {
-  //   position: 'absolute',
-  //   left: 0,
-  //   right: 0,
-  //   top: 0,
-  //   bottom: 0,
-  //   borderRadius: 20,
-  // },
-  // modalText: {
-  //   color: '#E0E0E0', // Light text for contrast
-  //   textAlign: 'center',
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   marginVertical: 10,
-  // },
-  
-  
-
-
-
-
-
-
-  progressBarContainer: {
-    marginTop: 20,
-    backgroundColor: 'rgba(55, 71, 79, 0.5)', // Semi-transparent background
-    borderRadius: 10,
-    height: 20,
-    overflow: 'hidden',
-    paddingHorizontal: 2, // Add some padding for a border effect
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: 'linear-gradient(to right, #4FC3F7, #2196F3)', // Gradient background
-    width: '0%', // Dynamically update this value based on progress
-    position: 'relative', // Position for animation
-    overflow: 'hidden', // Hide overflowing content
-  },
-  // progressBarFill: {
-  //   height: '100%',
-  //   borderRadius: 10,
-  //   backgroundColor: 'rgba(39, 174, 96, 0.9)', // Slightly transparent fill
-  //   position: 'absolute', // Position for animation
-  //   top: 0,
-  //   left: 0,
-  // },
-  
-
-
-
-
-
-
-
-
-  // listItem: {
-  //   paddingVertical: 15,
-  //   paddingHorizontal: 20,
-  //   borderBottomWidth: 1,
-  //   borderBottomColor: '#E0E0E0',
-  // },
-  // listItemText: {
-  //   fontSize: 16,
-  //   color: '#333',
-  // },
-  // divider: {
-  //   height: 1,
-  //   backgroundColor: '#E0E0E0',
-  //   marginVertical: 10,
-  // },
-  // animatedView: {
-  //   transform: [{ scale: 1.1 }],
-  //   opacity: 0.8,
-  // },  
-  
-
-  aiWorkoutBox: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 10,
-    backgroundColor: '#37474F', // Dark shade for the futuristic theme
-    borderStyle: 'groove',
-    borderWidth: 2,
-    borderColor: '#29B6F6', // Vibrant border color
-    shadowColor: '#29B6F6', // Shadow color matching border
-    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: '#3d3d3d',
+    shadowColor: '#ffffff',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowRadius: 2,
+    elevation: 5,
   },
-  aiWorkoutText: {
-    fontSize: 18,
+  summaryButtonText: {
+    color: '#ffffff', // White text for contrast
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#29B6F6', 
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 255, 255, 0.75)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 7,
   },
-  aiWorkoutSummaryPic: {
+  //___________________________________________________________________________
+
+
+
+
+
+
+
+
+
+  //__________________________ SUMMARY ________________________________________
+  modalContainer: {
+    backgroundColor: '#1E2A38', // Dark blue background
+    borderRadius: 10,
+    padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-
+    shadowColor: '#000', // Black shadow for a subtle depth effect
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    color: '#FFFFFF', // Light Blue Text
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  closeButton: {
+    backgroundColor: '#344955', // Darker blue for the button
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  closeButtonText: {
+    color: '#FFFFFF', // White text for contrast
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Semi-transparent background
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   
   
+  //___________________________________________________________________________
+
+
+
+
+
+
+
+
 })
 
 
