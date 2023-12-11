@@ -175,7 +175,7 @@ export default function Home() {
     return (
       <>
         <Tab.Navigator 
-          initialRouteName='Home' 
+          initialRouteName='Screen1' 
           screenOptions={{ 
             headerShown: false, 
             tabBarStyle: styles.tabNavigator
@@ -183,22 +183,22 @@ export default function Home() {
           id='tab'
         >
           <Tab.Screen 
-            name="Screen1" 
-            component={Dashboard} 
-            options={{ 
-              tabBarLabel: "Home", 
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="home" color={color} size={size - 5} style={styles.tabIcon} />
-              ), 
-            }} 
-          />
-          <Tab.Screen 
             name="Screen2" 
             component={Workouts} 
             options={{ 
               tabBarLabel: "Workouts", 
               tabBarIcon: ({ color, size }) => (
                 <MaterialCommunityIcons name="weight-lifter" size={size - 5} color={color} style={styles.tabIcon} />
+              ), 
+            }} 
+          />
+          <Tab.Screen 
+            name="Screen1" 
+            component={Dashboard} 
+            options={{ 
+              tabBarLabel: "Home", 
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="home" color={color} size={size - 5} style={styles.tabIcon} />
               ), 
             }} 
           />
