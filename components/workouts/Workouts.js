@@ -6,6 +6,7 @@ import { View,
          Animated, 
          Modal, 
          Dimensions, 
+         Image,
          FlatList, 
          ScrollView, 
          SafeAreaView,
@@ -13,12 +14,24 @@ import { View,
          useWindowDimensions,
          ActivityIndicator, 
          PanResponder,
-        } from 'react-native';
+         FastImage,
+} from 'react-native';
+import {
+  LineChart,
+  BarChart,
+  PieChart,
+  ProgressChart,
+  ContributionGraph,
+  StackedBarChart
+} from "react-native-chart-kit";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import {OPENAI_API_KEY} from 'react-native-dotenv';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
+import Carousel from 'react-native-snap-carousel';
+import { renderInternal } from '@testing-library/react-native/build/render';
+
 
 
 
@@ -49,49 +62,6 @@ const { width } = Dimensions.get('window');
 
 
 
-const EnhancedCategoryList = ({ workoutGroups }) => {
-  const scrollY = useRef(new Animated.Value(0)).current;
-
-  const renderItem = ({ item, index }) => (
-    <Animated.View
-      style={[
-        styles.categoryItem,
-        {
-          opacity: scrollY.interpolate({
-            inputRange: [-1, 0, 150 * index, 150 * (index + 2)],
-            outputRange: [1, 1, 1, 0],
-          }),
-          transform: [
-            {
-              scale: scrollY.interpolate({
-                inputRange: [-1, 0, 150 * index, 150 * (index + 1)],
-                outputRange: [1, 1, 1, 0.7],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
-      <Text style={styles.itemText}>{item.groupName}</Text>
-    </Animated.View>
-  );
-
-  return (
-    <View style={styles.categoriesBox}>
-      <Text style={styles.subtitle}>AI Workout Series</Text>
-      <Animated.FlatList
-        data={workoutGroups}
-        keyExtractor={(item, index) => `${item.groupName}-${index}`}
-        renderItem={renderItem}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
-      />
-    </View>
-  );
-};
 
 
 
@@ -123,21 +93,57 @@ export default function Workouts() {
   const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0)); // 0 represents the initial value
 
+  const carouselItems = [
+    {
+      title: "Item 1",
+      text: "Text 1",
+      image: "https://via.placeholder.com/150" 
+    },
+    {
+      title: "Item 2",
+      text: "Text 2",
+      image: "https://via.placeholder.com/150"
+    },
+    {
+      title: "Item 3",
+      text: "Text 3",
+      image: "https://via.placeholder.com/150"
+    },
+    {
+      title: "Item 4",
+      text: "Text 4",
+      image: "https://via.placeholder.com/150"
+    },
+    {
+      title: "Item 5",
+      text: "Text 5",
+      image: "https://via.placeholder.com/150"
+    }
+  ];
+
+  const images = {
+    'pilates': require('../images/pilates.webp'),
+    'hiit': require('../images/hiit.webp'),
+    'yoga': require('../images/yoga.webp'),
+    'endurance': require('../images/endurance.webp'),
+    'mobility': require('../images/mobility.webp'),
+  };
 
 
-  const handleProceedToWorkout = () => {
-    setButtonExpanded(true);
-    Animated.timing(buttonAnimation, {
-      toValue: 100, // Arbitrary large number to fill the screen
-      duration: 500,
-      useNativeDriver: false
-    }).start(() => {
-      // Navigate to the workout detail after the animation
-      navigateToWorkoutDetail(selectedWorkoutGroup);
-    });
+  const renderCarouselItem = ({ item, index }) => {
+    return (
+      <TouchableOpacity onPress={() => navigateToWorkoutDetail(item)}>
+        <View style={styles.carouselItemStyle}>
+          <Image 
+            source={images[item.image]}
+            style={{ width: '100%', height: '150%', marginTop: 90,}} // Adjust style as needed
+          />
+          <Text style={styles.highTechText}>{item.groupName}</Text>
+        </View>
+      </TouchableOpacity>
+    );
   };
   
-
 
   useEffect(() => {
     const fetchWorkoutHistory = async () => {
@@ -227,8 +233,7 @@ export default function Workouts() {
         // Check if the response contains the expected data
         if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
           console.log("AI Workout Summary:", responseJson.choices[0].text);
-          dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload: responseJson.choices[0].text });
-          dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+          extractFromFirstCapital(responseJson.choices[0].text );
         } else {
           console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
         }
@@ -245,7 +250,25 @@ export default function Workouts() {
   };
 
 
+  function extractFromFirstCapital(text) {
+    // Regular expression to find the first uppercase letter
+    const firstCapitalRegex = /[A-Z]/;
+  
+    // Finding the first occurrence of a capital letter
+    const match = firstCapitalRegex.exec(text);
+  
+    // If a match is found, return the substring from the match position to the end
+    if (match) {
+      dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload:  text.substring(match.index) });
+      dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+    } else {
+      // If no capital letter is found, return a default message or handle as needed
+      return "No capital letter found in the text.";
+    }
+  }
 
+
+  
 
 
 
@@ -615,45 +638,12 @@ export default function Workouts() {
 
   
 
-
-  const renderCategory = ({ item, index }) => {
-    const inputRange = [-1, 0, 50 * index, 50 * (index + 2)];
-  
-    const opacity = scrollY.interpolate({
-      inputRange,
-      outputRange: [1, 1, 1, 0]
-    });
-  
-    const scale = scrollY.interpolate({
-      inputRange,
-      outputRange: [1, 1, 1, 0.5]
-    });
-  
-    return (
-      <TouchableOpacity 
-        style={styles.categoryItem} 
-        onPress={() => navigateToWorkoutDetail(item)}// Passes the entire workout the user selected
-      >
-        <Animated.View style={{ opacity, transform: [{ scale }] }}>
-          <Text style={styles.categoryText}>{item.groupName}</Text>
-        </Animated.View>
-      </TouchableOpacity>
-    );
-  };
-
   const handleCloseSummary = () => {
     dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
   };
   
   //____________________________  ANIMATIONS ______________________________________
 
-  const animateModal = () => {
-    Animated.timing(modalAnimation, {
-      toValue: 1, // Fully visible
-      duration: 500, // Duration in milliseconds
-      useNativeDriver: true, // Use native driver for better performance
-    }).start();
-  };
   
 
 
@@ -692,9 +682,19 @@ export default function Workouts() {
         style={styles.summaryButton} 
         onPress={fetchAIWorkoutSummary}
       >
-        <Text style={styles.summaryButtonText}>Show Daily Workout Summary</Text>
-      </TouchableOpacity>
-      {renderSummaryModal()}
+        <Text style={styles.summaryButtonText}>Create Today's Custom AI Workout</Text>
+      </TouchableOpacity>{renderSummaryModal()}
+
+
+      <Carousel
+        data = {state.workoutGroups}
+        renderItem = {renderCarouselItem}
+        sliderWidth={width}
+        itemWidth={270}
+        loop={true}
+      />
+
+
     </View>
   );
 
@@ -716,8 +716,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#161618',
   },
 
+  carouselItemStyle: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'grey',
+    height: 200,
+    marginTop: 70,
+    marginRight: 10,
+  },
 
 
+  highTechText: {
+    color: 'white', // Bright cyan color for a futuristic feel
+    fontFamily: 'Arial', // Choose a sleek, modern font
+    fontSize: 16, // Adjust size as needed
+    fontWeight: 'bold', // Bold text for emphasis
+    textTransform: 'uppercase', // Uppercase letters for a techy look
+    letterSpacing: 2, // Increase letter spacing
+    textShadowColor: 'rgba(0, 255, 255, 0.55)', // Cyan text shadow for a neon effect
+    textShadowOffset: {width: 0, height: 0},
+    textShadowRadius: 10,
+    marginTop: 20,
+    textAlign: 'center',
+    // Add more styling as needed to fit your design theme
+  },
 
 
   //________________________  SUMMARY BUTTON ____________________________________
@@ -752,10 +774,13 @@ const styles = StyleSheet.create({
 
   //__________________________ SUMMARY ________________________________________
   modalContainer: {
-    backgroundColor: '#1E2A38', // Dark blue background
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: 'grey', // Dark blue background
+    borderBottomLeftRadius: 50,
+    borderBottomRightRadius: 50,
+    padding: 25,
+    marginBottom:58,
     alignItems: 'center',
+    width: 310,
     justifyContent: 'center',
     shadowColor: '#000', // Black shadow for a subtle depth effect
     shadowOffset: { width: 0, height: 2 },
@@ -764,7 +789,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalText: {
-    color: '#FFFFFF', // Light Blue Text
+    color: 'black', // Light Blue Text
     fontSize: 18,
     marginBottom: 20,
     textAlign: 'center',
@@ -782,9 +807,10 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Semi-transparent background
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Semi-transparent background
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 25,
   },
   
   
