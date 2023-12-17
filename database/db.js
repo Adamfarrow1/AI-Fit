@@ -26,8 +26,6 @@ const workoutSchema = new mongoose.Schema({
   sets: String,
   reps: String,
 });
-
-// Define a Mongoose schema for your data
 const userSchema = new mongoose.Schema({
       name: String,
       password: String,
@@ -40,7 +38,6 @@ const userSchema = new mongoose.Schema({
       height: String,
       goal: String,
       diet: String,
-      activityLevel: String,
       workoutHistory: [{
         date: Date,
         workouts: String,
@@ -59,12 +56,13 @@ const userSchema = new mongoose.Schema({
       }],
 });
 
-
-
 const workoutGroupSchema = new mongoose.Schema({
   groupName: {
     type: String,
     required: true
+  },
+  image: {
+    type: String,
   },
   workouts: [workoutSchema], // An array of workoutSchema instances
   createdDate: {
@@ -83,6 +81,9 @@ const WorkoutGroupModel = mongoose.model('WorkoutGroup', workoutGroupSchema);
 
 
 module.exports = WorkoutGroupModel;
+
+
+// WORKOUT CALLS ___________________________________________________________________
 
 app.post('/user/:userId/recordWorkout', async (req, res) => {
   try {
@@ -110,7 +111,6 @@ app.post('/user/:userId/recordWorkout', async (req, res) => {
   }
 });
 
-// Add this route in db.js
 
 app.get('/user/:userId/personalInfo', async (req, res) => {
   try {
@@ -151,9 +151,6 @@ app.post('/user/:userId/updatePersonalInfo', async (req, res) => {
 });
 
 
-
-
-
 app.post('/user/:userId/updateDailyAIWorkout', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -177,9 +174,6 @@ app.post('/user/:userId/updateDailyAIWorkout', async (req, res) => {
 });
 
 
-
-
-// TRIES TO GET USER ID 
 app.get('/user/:userId/workoutHistory', async (req, res) => {
   const { userId } = req.params;
   const oneMonthAgo = new Date();
@@ -195,11 +189,12 @@ app.get('/user/:userId/workoutHistory', async (req, res) => {
 app.post('/addWorkoutGroup', async (req, res) => {
   try {
     // Assuming req.body contains the groupName and an array of workouts
-    const { groupName, workouts } = req.body;
+    const { groupName, image, workouts } = req.body;
 
     // Create a new instance of WorkoutGroupModel
     const workoutGroup = new WorkoutGroupModel({
       groupName,
+      image,
       workouts
     });
 
@@ -212,7 +207,6 @@ app.post('/addWorkoutGroup', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while creating the workout group' });
   }
 });
-
 
 
 app.get('/getWorkoutGroup/:groupName', async (req, res) => {
@@ -258,143 +252,6 @@ app.get('/getWorkoutNames', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-// Route to retrieve user data by name from the database
-app.get('/getData/:name', async (req, res) => {
-  try {
-    const name = req.params.name;
-    // Query the "UserModel" collection for a user with the specified name
-    const userData = await UserModel.findOne({ name });
-
-    if (!userData) {
-      res.json({ message: 'User not found' });
-    } else {
-      res.json(userData);
-    }
-  } catch (error) {
-    console.error('Error retrieving data:', error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-
-app.post('/registerUser', async (req, res) => {
-  try {
-    // Log the incoming request body
-    console.log("Received request with body:", req.body);
-
-    // Extract data from the request body
-    const {
-      password,
-      fullName,
-      userName,
-      email,
-      age,
-      gender,
-      weight,
-      height,
-      goal,
-      diet,
-      activityLevel
-    } = req.body;
-
-    // Log the extracted data
-    console.log("Extracted data:", {
-      password, userName, fullName, email, age, gender, weight, height, goal, diet,activityLevel
-    });
-
-
-    const newUser = new UserModel({
-      password,
-      fullName,
-      userName,
-      email,
-      age,
-      gender,
-      weight,
-      height,
-      goal,
-      diet,
-      activityLevel
-    });
-
-    // Log the user object before saving
-    console.log("User object to be saved:", newUser);
-
-    // Save the new user to the database
-    await newUser.save();
-
-    console.log("User saved successfully");
-    res.json({ message: 'User registered successfully' });
-  } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-
-
-
-
-
-// Route to handle user login
-app.post('/login', async (req, res) => {
-  try {
-    console.log(req.body)
-    // Extract the username and password from the request body
-    const { userName, password } = req.body;
-
-    // Query the database to find a user with the given username and password
-    const user = await UserModel.findOne({ userName, password });
-    if (!user) {
-      // If no user is found, return an error response
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    console.log("user login success: " + user)
-
-    // If the user is found, you can customize the response accordingly
-    res.json({ message: 'Login successful', user });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-
-
-// this part of the code is for the meal plans
-const mealSchema = new mongoose.Schema({
-  _id: mongoose.Schema.Types.ObjectId,
-  date: {
-    type: Date,
-    default: Date.now, // Set the default value to the current date
-  },
-  meals: [
-    {
-      mealName: String,
-      foods: [
-        {
-          name: String,
-          calories: String,
-          ingredients: String,
-          recipe: String,
-          macros: String,
-        }
-      ]
-    }
-  ]
-});
-
-
-// In your db.js or equivalent server file
-
 app.delete('/deleteWorkoutGroup/:id', async (req, res) => {
   const { id } = req.params;
   
@@ -434,9 +291,136 @@ app.delete('/deleteWorkout/:workoutId', async (req, res) => {
   }
 });
 
+// __________________________________________________________________
 
 
 
+
+
+
+
+// LOGIN / REGISTER ________________________________________________________
+app.get('/getData/:name', async (req, res) => {
+  try {
+    const name = req.params.name;
+    // Query the "UserModel" collection for a user with the specified name
+    const userData = await UserModel.findOne({ name });
+
+    if (!userData) {
+      res.json({ message: 'User not found' });
+    } else {
+      res.json(userData);
+    }
+  } catch (error) {
+    console.error('Error retrieving data:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+app.post('/registerUser', async (req, res) => {
+  try {
+    // Log the incoming request body
+    console.log("Received request with body:", req.body);
+
+    // Extract data from the request body
+    const {
+      password,
+      fullName,
+      userName,
+      email,
+      age,
+      gender,
+      weight,
+      height,
+      goal,
+      diet
+    } = req.body;
+
+    // Log the extracted data
+    console.log("Extracted data:", {
+      password, userName, fullName, email, age, gender, weight, height, goal, diet
+    });
+
+
+    const newUser = new UserModel({
+      password,
+      fullName,
+      userName,
+      email,
+      age,
+      gender,
+      weight,
+      height,
+      goal,
+      diet
+    });
+
+    // Log the user object before saving
+    console.log("User object to be saved:", newUser);
+
+    // Save the new user to the database
+    await newUser.save();
+
+    console.log("User saved successfully");
+    res.json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+app.post('/login', async (req, res) => {
+  try {
+    console.log(req.body)
+    // Extract the username and password from the request body
+    const { userName, password } = req.body;
+
+    // Query the database to find a user with the given username and password
+    const user = await UserModel.findOne({ userName, password });
+    if (!user) {
+      // If no user is found, return an error response
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    console.log("user login success: " + user)
+
+    // If the user is found, you can customize the response accordingly
+    res.json({ message: 'Login successful', user });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+// ______________________________________________________________
+
+
+
+
+
+// MEAL PLANS _________________________________________________
+const mealSchema = new mongoose.Schema({
+  _id: mongoose.Schema.Types.ObjectId,
+  date: {
+    type: Date,
+    default: Date.now, // Set the default value to the current date
+  },
+  meals: [
+    {
+      mealName: String,
+      foods: [
+        {
+          name: String,
+          calories: String,
+          ingredients: String,
+          recipe: String,
+          macros: String,
+        }
+      ]
+    }
+  ]
+});
 
 
 const Meal = mongoose.model('Meal', mealSchema);
@@ -480,8 +464,6 @@ app.post('/meals', async (req, res) => {
   }
 });
 
-
-
 app.post('/updateMacros', async (req, res) => {
   try {
     const { _id, mealName, macros } = req.body;
@@ -521,9 +503,6 @@ app.post('/updateMacros', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
-
 
 app.post('/fetchMacros', async (req, res) => {
   try {
@@ -568,18 +547,6 @@ app.post('/fetchMacros', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
 app.post('/updateMeals', async (req, res) => {
   try {
     const { _id } = req.body;
@@ -609,9 +576,6 @@ app.post('/updateMeals', async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
-
-
-
 
 app.post('/updateRecipe', async (req, res) => {
   try {
