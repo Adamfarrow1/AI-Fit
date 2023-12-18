@@ -93,33 +93,23 @@ export default function Workouts() {
   const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0)); // 0 represents the initial value
 
-  const carouselItems = [
-    {
-      title: "Item 1",
-      text: "Text 1",
-      image: "https://via.placeholder.com/150" 
-    },
-    {
-      title: "Item 2",
-      text: "Text 2",
-      image: "https://via.placeholder.com/150"
-    },
-    {
-      title: "Item 3",
-      text: "Text 3",
-      image: "https://via.placeholder.com/150"
-    },
-    {
-      title: "Item 4",
-      text: "Text 4",
-      image: "https://via.placeholder.com/150"
-    },
-    {
-      title: "Item 5",
-      text: "Text 5",
-      image: "https://via.placeholder.com/150"
-    }
-  ];
+  const data = {
+    labels: ["January", "February", "March", "April", "May", "June"],
+    datasets: [
+      {
+        data: [20, 45, 28, 80, 99, 43]
+      }
+    ]
+  };
+
+  
+
+
+
+
+
+
+
 
   const images = {
     'pilates': require('../images/pilates.webp'),
@@ -692,6 +682,36 @@ export default function Workouts() {
         sliderWidth={width}
         itemWidth={270}
         loop={true}
+      />
+
+
+      <LineChart
+        data={data}
+        width={Dimensions.get("window").width}
+        height={200}
+        yAxisSuffix="lbs"
+        yAxisInterval={1}
+        chartConfig={{
+          backgroundColor: "#161618", // Dark background
+          backgroundGradientFrom: "#232323", // Gradient start
+          backgroundGradientTo: "#3a3a3a", // Gradient end
+          decimalPlaces: 2,
+          color: (opacity = 1) => `rgba(0, 255, 255, ${opacity})`, // Bright cyan line color
+          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // White labels for contrast
+          style: {
+            borderRadius: 16,
+          },
+          propsForDots: {
+            r: "6",
+            strokeWidth: "2",
+            stroke: "#00ffff", // Dot border color
+          },
+        }}
+        bezier // Smooth line curves
+        style={{
+          marginVertical: 8,
+          borderRadius: 16,
+        }}
       />
 
 
