@@ -233,11 +233,12 @@ export default function Mealplans({ navigation }) {
       await setReady(false);
       circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
       setCaloriesConsumed(0);
-
-      let prompt = "Can you give me three meals for the day under " + totalCaloriesNeeded + " total calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+      console.log("--------------------------------------")
+      console.log(Math.round(totalCaloriesNeeded / 3))
+      let prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
 
       if(user.diet !== ""){
-        prompt = "Can you give me three meals for me for the day under " + totalCaloriesNeeded + " total calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+        prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
       }
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -312,8 +313,9 @@ export default function Mealplans({ navigation }) {
     if (!hasFocusEffectRun) {
       console.log("this is a fresh page-------------------------------------------------")
       // Call your function only once
+      calculateTDEE();
        getMeals();
-       calculateTDEE();
+      
       // Mark that the effect has run
       setHasFocusEffectRun(true);
     }

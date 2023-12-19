@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { OPENAI_API_KEY , GLOBAL_IP } from 'react-native-dotenv'
+import { OPENAI_API_KEY , GLOBAL_IP, USDA_API_KEY } from 'react-native-dotenv'
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
@@ -142,36 +142,77 @@ const DetailsScreen = ({ route }) => {
       }
   }
 
+  useEffect(() => {
+    console.log('Updated nutritionData:', nutritionData);
+  }, [nutritionData]);
 
-
-
+  const apiService = axios.create({
+    baseURL: "https://api.nal.usda.gov/fdc/v1",
+  });
 
   const getPlans = async () => {
     try {
-      console.log("chatgpt is being called")
-      const res = await fetch('https://api.openai.com/v1/completions', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
+      // console.log("chatgpt is being called")
+      // const res = await fetch('https://api.openai.com/v1/completions', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Accept': 'application/json',
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${OPENAI_API_KEY}`
+      //   },
+      //   body: JSON.stringify({
+      //     model: "text-davinci-003",
+      //     prompt: "what are the macros for the meal " + meal.meals.name + " if it has " + meal.meals.calories + " with these ingredients " + meal.meals.ingredients + ". format your response like so without using the word full word grams seperate output by newlines. dont reply with the meal name: (ingredient 1) brocolli: Calories (amount of calories here)1 : Protein (amount of protein here)2g : Carbohydrates (amount of carbohydrates here)3g : Fat (amount of fat here)1g",
+      //     max_tokens: 300,
+      //     temperature: 1,
+      //   }),
+      // });
+
+      // if (res.ok) {
+      //   const responseJson = await res.json();
+      //   console.log(responseJson.choices[0].text);
+      //   parseData(responseJson.choices[0].text);
+
+      // } else {
+      //   console.error('Failed to fetch data');
+      // }
+      const response = await apiService.get('/foods/search', {
+        params: {
+          query: 'Carrots',
+          api_key: USDA_API_KEY,
         },
-        body: JSON.stringify({
-          model: "text-davinci-003",
-          prompt: "what are the macros for the meal " + meal.meals.name + " if it has " + meal.meals.calories + " with these ingredients " + meal.meals.ingredients + ". format your response like so without using the word full word grams seperate output by newlines. dont reply with the meal name: (ingredient 1) brocolli: Calories (amount of calories here)1 : Protein (amount of protein here)2g : Carbohydrates (amount of carbohydrates here)3g : Fat (amount of fat here)1g",
-          max_tokens: 300,
-          temperature: 1,
-        }),
       });
+  
+      console.log('new macros======================================');
+      console.log(response.data.foods[0].foodNutrients);
+  
+      const newData = response.data.foods[0].foodNutrients.map((nutrient) => ({
+        name: "carrot",
+        nutrientname: nutrient.nutrientName,
+        value: nutrient.value,
+        unit: nutrient.unitName,
+      }));
+  
+      setNutritionData((prevData) => [...prevData, ...newData]);
+  
+      console.log('Updated nutritionData:', nutritionData);
+      console.log(nutritionData);
 
-      if (res.ok) {
-        const responseJson = await res.json();
-        console.log(responseJson.choices[0].text);
-        parseData(responseJson.choices[0].text);
 
-      } else {
-        console.error('Failed to fetch data');
-      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     } catch (error) {
       console.error(error);
     }
@@ -316,22 +357,22 @@ const DetailsScreen = ({ route }) => {
 
       {/* Content area based on active button */}
       <ScrollView style={styles.scrollViewW}>
-        {activeButton === 'ingredients' && (
-          // Render ingredient macros
-          <View>
-            {nutritionData.map((item, index) => (
-              <View key={index} style={styles.itemContainer}>
-                <Text style={styles.foodTitle}>{item.name}</Text>
-                <View style={styles.macrosContainer}>
-                  <Text style={styles.macroText}>Calories: {item.calories}</Text>
-                  <Text style={styles.macroText}>Protein: {item.protein}g</Text>
-                  <Text style={styles.macroText}>Carbohydrates: {item.carbohydrates}g</Text>
-                  <Text style={styles.macroText}>Fat: {item.fat}g</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+      {activeButton === 'ingredients' && (
+        <View style={styles.itemContainer}>
+          {/* add interative loop to account for many ingredients + make add show more option to reduce clutter on macros */}
+          <Text style={styles.foodTitle}>Carrot</Text>
+          {nutritionData.map((item, index) => (
+            <View key={index} >
+              {/* Render nutrients */}
+              <Text style={styles.macroText}>
+                {item.nutrientname}: {item.value} {item.unit}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+
 
         {activeButton === 'instructions' && (
           // Render cooking instructions
