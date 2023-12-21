@@ -205,7 +205,7 @@ export default function Mealplans({ navigation }) {
           if (currentMeal) {
             let [foodName, foodCalories, foodIngredients] = sectionText.split(': ');
             if (foodName && foodCalories) {
-              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients?.replace(/[^a-zA-Z0-9 ]/g, '') });
+              currentMeal.foods.push({ name: foodName, calories: foodCalories, ingredients: foodIngredients.replace(/[^a-zA-Z0-9, ]/g, '') });
               extractNumberFromStringAsInteger(foodCalories);
             } else {
               console.error('Incomplete food information found');
@@ -235,10 +235,10 @@ export default function Mealplans({ navigation }) {
       setCaloriesConsumed(0);
       console.log("--------------------------------------")
       console.log(Math.round(totalCaloriesNeeded / 3))
-      let prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+      let prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories? format your reponse like so (do not use commas to seperate except for ingredients): Breakfast: (food name): (number of calories) calories: (ingredients ingredients seperated by comma and use queries known by USDA API)";
 
       if(user.diet !== ""){
-        prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate) (you dont have to include eggs with toast): Breakfast: (food name): (number of calories) calories: (ingredients)";
+        prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate except for ingredients): Breakfast: (food name): (number of calories) calories: (ingredients seperated by comma and use queries known by USDA API)";
       }
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -250,7 +250,7 @@ export default function Mealplans({ navigation }) {
         body: JSON.stringify({
           model: "text-davinci-003",
           prompt: prompt,
-          max_tokens: 300,
+          max_tokens: 2000,
           temperature: 1,
         }),
       });

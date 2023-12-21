@@ -60,53 +60,53 @@ const DetailsScreen = ({ route }) => {
   }
 
 
-  const parseData = (data) => {
-    if (!data) {
-      console.error('Data is undefined or empty');
-      return [];
-    }
+  // const parseData = (data) => {
+  //   if (!data) {
+  //     console.error('Data is undefined or empty');
+  //     return [];
+  //   }
   
-    const foodSections = data.split('\n');
-    const parsedData = [];
+  //   const foodSections = data.split('\n');
+  //   const parsedData = [];
   
-    for (const section of foodSections) {
-      console.log("without regex yet: " + section)
-      const stringWithColons = section.replace(/,|-/g, ':')
-      const stringWithoutCommas = stringWithColons.replace(/,/g, '');
-      let stringWithoutParentheses = stringWithoutCommas.replace(/[()]/g, "");
-      console.log("new string without par: " + stringWithoutParentheses);
-      if((stringWithoutParentheses.match(/:/g) || []).length === 7){
-        const parts = stringWithoutParentheses.split(':');
+  //   for (const section of foodSections) {
+  //     console.log("without regex yet: " + section)
+  //     const stringWithColons = section.replace(/,|-/g, ':')
+  //     const stringWithoutCommas = stringWithColons.replace(/,/g, '');
+  //     let stringWithoutParentheses = stringWithoutCommas.replace(/[()]/g, "");
+  //     console.log("new string without par: " + stringWithoutParentheses);
+  //     if((stringWithoutParentheses.match(/:/g) || []).length === 7){
+  //       const parts = stringWithoutParentheses.split(':');
 
-        // Map over the parts and keep every other one
-        const modifiedParts = parts.map((part, index) => (index % 2 === 0 ? part : ''));
+  //       // Map over the parts and keep every other one
+  //       const modifiedParts = parts.map((part, index) => (index % 2 === 0 ? part : ''));
 
-        // Join the modified parts back together with colons
-        stringWithoutParentheses = modifiedParts.join(':');
-      }
+  //       // Join the modified parts back together with colons
+  //       stringWithoutParentheses = modifiedParts.join(':');
+  //     }
    
-        const temp = stringWithoutParentheses.split(':');
-        if (temp[0].trim() !== '') {
-          const currentFood = {
-            name: temp[0],
-            calories: temp[1] ? parseInt(temp[1].replace(/[^0-9/.]/g, '')) : 0,
-            protein: temp[2] ? parseFloat(temp[2].replace(/[^0-9/.]/g, '')) : 0,
-            carbohydrates: temp[3] ? parseFloat(temp[3].replace(/[^0-9/.]/g, '')) : 0,
-            fat: temp[4] ? parseFloat(temp[4].replace(/[^0-9/.]/g, '')) : 0,
-          };
-          parsedData.push(currentFood);
-        }
-    }
+  //       const temp = stringWithoutParentheses.split(':');
+  //       if (temp[0].trim() !== '') {
+  //         const currentFood = {
+  //           name: temp[0],
+  //           calories: temp[1] ? parseInt(temp[1].replace(/[^0-9/.]/g, '')) : 0,
+  //           protein: temp[2] ? parseFloat(temp[2].replace(/[^0-9/.]/g, '')) : 0,
+  //           carbohydrates: temp[3] ? parseFloat(temp[3].replace(/[^0-9/.]/g, '')) : 0,
+  //           fat: temp[4] ? parseFloat(temp[4].replace(/[^0-9/.]/g, '')) : 0,
+  //         };
+  //         parsedData.push(currentFood);
+  //       }
+  //   }
   
-    console.log("parsed data------------");
-    console.log(parsedData);
-    setNutritionData(parsedData);
-    savePlans(parsedData);
-  };
+  //   console.log("parsed data------------");
+  //   console.log(parsedData);
+  //   setNutritionData(parsedData);
+  //   savePlans(parsedData);
+  // };
   
 
 
-  const fetchMacros = async () => {
+  const fetchMacros = async (ingredients) => {
     try{
       console.log("starting to fetch macros now")
         const response = await axios.post('http://' + GLOBAL_IP + ':3000/fetchMacros', {
@@ -117,7 +117,13 @@ const DetailsScreen = ({ route }) => {
         console.log(response.data.updatedFoodDetails.macros);
         setNutritionData(JSON.parse(response.data.updatedFoodDetails.macros))
     }catch(error){
-      getPlans();
+
+      const ingredientsSplit = meal.meals.ingredients.split(',');
+
+      ingredientsSplit.forEach(element => {
+        getPlans(element);
+      });
+ 
       console.log('Error fetching macros:', error);
     }
   }
@@ -150,7 +156,7 @@ const DetailsScreen = ({ route }) => {
     baseURL: "https://api.nal.usda.gov/fdc/v1",
   });
 
-  const getPlans = async () => {
+  const getPlans = async (ingredient) => {
     try {
       // console.log("chatgpt is being called")
       // const res = await fetch('https://api.openai.com/v1/completions', {
@@ -178,25 +184,34 @@ const DetailsScreen = ({ route }) => {
       // }
       const response = await apiService.get('/foods/search', {
         params: {
-          query: 'Carrots',
+          query: ingredient,
           api_key: USDA_API_KEY,
         },
       });
-  
+      
       console.log('new macros======================================');
       console.log(response.data.foods[0].foodNutrients);
-  
-      const newData = response.data.foods[0].foodNutrients.map((nutrient) => ({
-        name: "carrot",
-        nutrientname: nutrient.nutrientName,
-        value: nutrient.value,
-        unit: nutrient.unitName,
-      }));
-  
-      setNutritionData((prevData) => [...prevData, ...newData]);
-  
-      console.log('Updated nutritionData:', nutritionData);
-      console.log(nutritionData);
+      
+      const ingredientName = ingredient.trim(); // Use lowercase for consistency
+      
+      const newMacroData = {
+        ingredientName: response.data.foods[0].description,
+        macros: response.data.foods[0].foodNutrients.map((nutrient) => ({
+          name: nutrient.nutrientName.trim(),
+          value: nutrient.value,
+          unit: nutrient.unitName.trim(),
+        })),
+      };
+      
+      const updatedNutritionData = [...nutritionData, newMacroData];
+      
+      setNutritionData((prevData) => [...prevData, newMacroData]);
+
+      
+      console.log('Updated nutritionData:', updatedNutritionData);
+      console.log(updatedNutritionData);
+      
+
 
 
 
@@ -224,6 +239,8 @@ const DetailsScreen = ({ route }) => {
     if (!hasFocusEffectRun) {
       // Call your function only once
       console.log("fetch the macros")
+      console.log(meal.meals.ingredients);
+
       fetchMacros();
       fetchRecipe();
       
@@ -338,7 +355,7 @@ const DetailsScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       {/* Buttons for switching between Ingredients and Instructions */}
-      <Button title="Test" onPress={() => {getRecipe()}} color="#6b6776" />
+      <Button title="Test" onPress={() => { getRecipe() }} color="#6b6776" />
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, activeButton === 'ingredients' && styles.activeButton]}
@@ -346,7 +363,7 @@ const DetailsScreen = ({ route }) => {
         >
           <Text style={styles.buttonText}>Ingredients</Text>
         </TouchableOpacity>
-
+  
         <TouchableOpacity
           style={[styles.button, activeButton === 'instructions' && styles.activeButton]}
           onPress={switchToInstructions}
@@ -354,36 +371,42 @@ const DetailsScreen = ({ route }) => {
           <Text style={styles.buttonText}>Instructions</Text>
         </TouchableOpacity>
       </View>
-
+  
       {/* Content area based on active button */}
       <ScrollView style={styles.scrollViewW}>
+  
       {activeButton === 'ingredients' && (
-        <View style={styles.itemContainer}>
-          {/* add interative loop to account for many ingredients + make add show more option to reduce clutter on macros */}
-          <Text style={styles.foodTitle}>Carrot</Text>
-          {nutritionData.map((item, index) => (
-            <View key={index} >
-              {/* Render nutrients */}
+  <View >
+    {nutritionData.map((ingredientData, index) => {
+      const ingredientName = ingredientData.ingredientName;
+      const macros = ingredientData.macros;
+
+      return (
+        <View key={index} style={styles.itemContainer}>
+          <Text style={styles.foodTitle}>{ingredientName}</Text>
+          {macros.map((nutrientInfo, nutrientIndex) => (
+            <View key={nutrientIndex}>
               <Text style={styles.macroText}>
-                {item.nutrientname}: {item.value} {item.unit}
+                {nutrientInfo.name}: {nutrientInfo.value} {nutrientInfo.unit}
               </Text>
             </View>
           ))}
         </View>
-      )}
+      );
+    })}
+  </View>
+)}
 
-
-
+  
         {activeButton === 'instructions' && (
-          // Render cooking instructions
           <View style={styles.recipeContainer}>
-            <Text style= {styles.title} >Ingredients:</Text>
+            <Text style={styles.title}>Ingredients:</Text>
             <View style={styles.foodContainer}>
               {ingredients.map((ingredient, index) => (
                 <Text style={styles.recipeText} key={index}>{ingredient} {'\n'}</Text>
               ))}
             </View>
-            <Text style= {styles.title}>Instructions:</Text>
+            <Text style={styles.title}>Instructions:</Text>
             {instructions.map((instruction, index) => (
               <View key={index} style={styles.foodContainer}>
                 <Text style={styles.recipeText} key={index}>{instruction}</Text>
@@ -391,10 +414,11 @@ const DetailsScreen = ({ route }) => {
             ))}
           </View>
         )}
+  
       </ScrollView>
     </View>
   );
-};
+            };
 
 const styles = StyleSheet.create({
   foodContainer: {
