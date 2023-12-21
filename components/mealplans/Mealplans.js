@@ -250,7 +250,7 @@ export default function Mealplans({ navigation }) {
         body: JSON.stringify({
           model: "text-davinci-003",
           prompt: prompt,
-          max_tokens: 2000,
+          max_tokens: 1000,
           temperature: 1,
         }),
       });
