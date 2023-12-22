@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 const port = 3000;
 
-const uri = process.env.NODE_ENV;
+const uri = process.env.MONGO;
 console.log(uri)
 mongoose
   .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
