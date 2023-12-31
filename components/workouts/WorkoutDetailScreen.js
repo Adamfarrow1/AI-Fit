@@ -52,7 +52,7 @@ export default function WorkoutDetailScreen({ route }) {
         // Handle quiz submission logic here (e.g., validate answers)
         console.log('Answer 1:', answerOne, 'Answer 2:', answerTwo);
         // Navigate back to Workouts screen
-        navigation.navigate('Workouts', { workoutCompleted: true, completedDay: getCurrentDay() });    
+        navigation.navigate('Screen2', { workoutCompleted: true, completedDay: getCurrentDay() });    
     };
 
 
