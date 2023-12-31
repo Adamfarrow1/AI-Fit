@@ -306,6 +306,10 @@ export default function Mealplans({ navigation }) {
     console.log(meals);
     navigation.navigate('Details', {meals: meals});
   };
+
+  const handleCustommealPress = (meals) => {
+    navigation.navigate('addCustomMeal', {meals: meals});
+  };
   
 
   const [hasFocusEffectRun, setHasFocusEffectRun] = useState(false);
@@ -330,7 +334,9 @@ export default function Mealplans({ navigation }) {
   };
 
   return (
+    <ScrollView style={{backgroundColor: "#161618"}}>
     <View style={styles.container}>
+    
       <Text style={styles.title}>Calorie Tracker</Text>
       <AnimatedCircularProgress
         size={150}
@@ -353,6 +359,19 @@ export default function Mealplans({ navigation }) {
         }
       </AnimatedCircularProgress>
       <Button title="Test" onPress={async () => {await getPlans()}} color="#6b6776" />
+
+      <View style={{ borderWidth: 1,borderColor: 'white',borderRadius: 10,}}  ><Button onPress={ () => { handleCustommealPress()}} title="Add a new custom meal" color="white"  /></View>
+
+
+
+      
+
+
+
+
+
+
+      
       <Text style={styles.title}>Select a day</Text>
       <View style={styles.daysContainer}>
         {daysOfWeek.map((day) => (
@@ -375,6 +394,22 @@ export default function Mealplans({ navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+
+
+
+
+      <Text style={styles.title}>{selectedDay !== null ? "Your meals for " + daysOfWeek[selectedDay - 1].fullName + ":" : null}</Text>
+
+      <ScrollView style={styles.viewbg}>
+            
+      </ScrollView>
+
+
+
+
+
+
+
 
       <Text style={styles.title}>{selectedDay !== null ? "Recommended meals for " + daysOfWeek[selectedDay - 1].fullName + ":" : null}</Text>
       <ScrollView style={styles.viewbg}>
@@ -404,10 +439,12 @@ export default function Mealplans({ navigation }) {
       ))}
     </View>
   ))}
+  
 </ScrollView>
 
 
     </View>
+    </ScrollView>
   );
 }
 
@@ -488,7 +525,7 @@ const styles = StyleSheet.create({
   viewbg: {
     backgroundColor: '#222126',
     borderRadius: 20,
-    height: '50%',
+    height: 450,
     width: '90%',
     marginTop: 10,
   },

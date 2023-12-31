@@ -10,6 +10,7 @@ import Workouts from './components/workouts/Workouts';
 import MonthlyProgress from './components/workouts/MonthlyProgress';
 import { useAuth } from './context/authcontext';
 import DetailsScreen from './components/mealplans/Details';
+import AddCustomMeal from './components/mealplans/AddCustomMeal';
 const Stack = createStackNavigator();
 
 const Page = () => {
@@ -49,6 +50,7 @@ const Page = () => {
           options={{ headerShown: false }}  // Add this line
         />
         <Stack.Screen name="Details" component={DetailsScreen} />
+        <Stack.Screen name="addCustomMeal" component={AddCustomMeal} />
 
       </Stack.Navigator>
     </View>
