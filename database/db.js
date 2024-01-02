@@ -622,6 +622,78 @@ app.post('/updateRecipe', async (req, res) => {
 
 
 
+const customMealSchema = new mongoose.Schema({
+  _id: mongoose.Schema.Types.ObjectId,
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+  meals: [
+    {
+      mealName: String,
+      foods: {
+        name: String,
+        calories: String,
+        ingredients: [
+          {
+            amount: String,
+            name: String,
+          },
+        ],
+        recipe: String,
+        macros: String,
+      },
+    },
+  ],
+});
+
+const CustomMeal = mongoose.model('custom_meals', customMealSchema);
+
+app.post('/customMeals', async (req, res) => {
+  try {
+    const { _id, mealsData } = req.body;
+    // Convert the provided _id (string) to a mongoose ObjectId
+    const userId = new mongoose.Types.ObjectId(_id); // Use 'new'
+    // Find the user by _id
+    const user = await UserModel.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get the current date
+    const currentDate = new Date();
+
+    // Check if a meal with the specified userId already exists
+    const existingMeal = await CustomMeal.findOne({ _id: userId });
+
+    if (existingMeal) {
+      // If a meal exists, push the new mealData to the end of the meals array
+      existingMeal.meals.push(...mealsData);
+      existingMeal.date = currentDate;
+
+      // Save the updated CustomMeal document
+      await existingMeal.save();
+      console.log('Meals updated in the custom_meals collection successfully.');
+      res.json({ message: 'Meals updated in the custom_meals collection successfully' });
+    } else {
+      // If a meal does not exist, create a new CustomMeal document with the current date
+      const newMeal = new CustomMeal({
+        _id: userId, // Use the user's _id as the _id
+        meals: mealsData, // Store it as a JavaScript object
+        date: currentDate,
+      });
+
+      // Save the new CustomMeal document to the "custom_meals" collection
+      await newMeal.save();
+      console.log('Meals added to the custom_meals collection successfully.');
+      res.json({ message: 'Meals added to the custom_meals collection successfully' });
+    }
+  } catch (error) {
+    console.error('Error adding/updating meals to the custom_meals collection:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
 
 
 

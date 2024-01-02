@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { GLOBAL_IP } from 'react-native-dotenv';
+import { useAuth } from '../../context/authcontext';
+import axios from 'axios';
 
 const CustomMealForm = () => {
   const navigation = useNavigation();
@@ -10,6 +13,40 @@ const CustomMealForm = () => {
   const [ingredients, setIngredients] = useState([]);
   const [ingredientName, setIngredientName] = useState('');
   const [amount, setAmount] = useState('');
+  const { user } = useAuth();
+
+
+  const handleAddMealDB = async () => {
+    try {
+      console.log(GLOBAL_IP);
+  
+      const response = await axios.post(`http://${process.env.GLOBAL_IP}:3000/customMeals`, {
+        _id: user._id,
+        mealsData: [
+          {
+            mealName: mealTitle, // Assuming mealTitle is the meal name
+            foods: {
+              name: mealName, // Assuming mealName is the food name
+              calories: totalCalories, // Assuming totalCalories is the total calories
+              ingredients: ingredients,
+              // Add other food properties as needed
+            },
+          },
+          // Add more mealsData objects as needed
+        ],
+      });
+  
+      console.log("Added custom meal into the user account:", response.data);
+    } catch (error) {
+      console.error('Error setting up add custom meal request:', error.message);
+    }
+  };
+  
+
+
+
+
+
 
   const handleAddIngredient = () => {
     if (ingredientName && amount) {
@@ -38,7 +75,7 @@ const CustomMealForm = () => {
       totalCalories,
       ingredients,
     });
-
+    handleAddMealDB();
     setMealTitle('');
     setMealName('');
     setTotalCalories('');
