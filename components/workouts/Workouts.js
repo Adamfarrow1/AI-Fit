@@ -7,17 +7,26 @@ import { View,
          Modal, 
          Dimensions, 
          Image,
+         FlatList, 
+         ScrollView, 
+         SafeAreaView,
+         ImageBackground,
+         useWindowDimensions,
+         ActivityIndicator, 
+         PanResponder,
+         FastImage,
 } from 'react-native';
 import {
   LineChart,
+  BarChart,
+  PieChart,
+  ProgressChart,
+  ContributionGraph,
+  StackedBarChart
 } from "react-native-chart-kit";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import {OPENAI_API_KEY} from 'react-native-dotenv';
 import axios from 'axios';
 import { useAuth } from '../../context/authcontext';
-import Carousel from 'react-native-reanimated-carousel';
-
-
 
 
 
@@ -43,11 +52,11 @@ const reducer = (state, action) => {
   }
 };
 
-
-
 const { width } = Dimensions.get('window');
-
-
+const ITEM_WIDTH = width * 0.7; // 60% of the screen width
+const ITEM_HEIGHT = ITEM_WIDTH; // For an aspect ratio of 3:2, adjust as needed
+const ITEM_MARGIN = 14;
+const HEIGHT = 330;
 
 
 
@@ -79,25 +88,14 @@ export default function Workouts() {
   const animatedValue = useRef(new Animated.Value(1)).current;
   const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0)); // 0 represents the initial value
-
   const data = {
-    labels: ["M", "T", "W", "Th", "F", "S"],
+    labels: ["January", "February", "March", "April", "May", "June"],
     datasets: [
       {
-        data: [180, 190, 185, 180, 199, 205]
+        data: [20, 45, 28, 80, 99, 43]
       }
     ]
   };
-
-  
-
-
-
-
-
-
-
-
   const images = {
     'pilates': require('../images/pilates.webp'),
     'hiit': require('../images/hiit.webp'),
@@ -107,20 +105,76 @@ export default function Workouts() {
   };
 
 
+
+
+
+
+
+
+
+  const extendedData = [...state.workoutGroups, ...state.workoutGroups, ...state.workoutGroups];
+  const flatListRef = useRef();
+  const snap = ITEM_WIDTH + (ITEM_MARGIN * 2);
+
+
+
+  const getItemLayout = (data, index) => ({
+    length: ITEM_WIDTH,
+    offset: (ITEM_WIDTH + ITEM_MARGIN * 1.8) * index,
+    index,
+  });
+  
+  
+
+  useEffect(() => {
+    if (flatListRef.current && state.workoutGroups.length > 0) {
+      const initialIndex = Math.floor(extendedData.length / 2);
+      flatListRef.current.scrollToIndex({ index: initialIndex, animated: false });
+    }
+  }, [state.workoutGroups]);  
+  
+
+
   const renderCarouselItem = ({ item, index }) => {
     return (
       <TouchableOpacity onPress={() => navigateToWorkoutDetail(item)}>
         <View style={styles.carouselItemStyle}>
           <Image 
             source={images[item.image]}
-            style={{ width: '100%', height: '150%', marginTop: 90,}} // Adjust style as needed
+            style={styles.imageStyle} // Uniform image style
           />
           <Text style={styles.highTechText}>{item.groupName}</Text>
         </View>
       </TouchableOpacity>
     );
   };
+
+
+  const handleScroll = (event) => {
+    const position = event.nativeEvent.contentOffset.x;
+    const totalContentWidth = (ITEM_WIDTH + ITEM_MARGIN * 2) * extendedData.length;
   
+    if (position <= 0) {
+      flatListRef.current.scrollToOffset({ offset: totalContentWidth / 3, animated: false });
+    } else if (position >= totalContentWidth * 2 / 3) {
+      flatListRef.current.scrollToOffset({ offset: totalContentWidth / 3 - totalContentWidth, animated: false });
+    }
+  };
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     const fetchWorkoutHistory = async () => {
@@ -179,7 +233,6 @@ export default function Workouts() {
     
     const currentDate = new Date().toDateString();
     if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
-      console.log("");
       console.log('Workout already fetched for today, displaying todays message...');
       dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
       return; //  TAKE USER TO THE WORKOUT
@@ -194,7 +247,7 @@ export default function Workouts() {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
 
         },
         body: JSON.stringify({
@@ -457,7 +510,7 @@ export default function Workouts() {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
           model: "text-davinci-003",
@@ -664,14 +717,20 @@ export default function Workouts() {
       </TouchableOpacity>{renderSummaryModal()}
 
 
-      <Carousel
-        width={width} // width of the carousel
-        data={state.workoutGroups} // your data array
-        renderItem={({item, index}) => renderCarouselItem({item, index})}
-        activeSlideAlignment={'center'}
-        autoPlay= {'true'}
-        loop={true} 
+      <FlatList
+        ref={flatListRef}
+        data={extendedData}
+        renderItem={renderCarouselItem}
+        horizontal={true}
+        keyExtractor={(item, index) => index.toString()}
+        onScroll={handleScroll}
+        snapToInterval={snap}
+        decelerationRate={"fast"}
+        getItemLayout={getItemLayout} 
+        initialNumToRender={15}
+        contentContainerStyle={styles.flatListStyle}
       />
+
 
       <LineChart
         data={data}
@@ -681,9 +740,9 @@ export default function Workouts() {
         yAxisInterval={1}
         chartConfig={{
           backgroundColor: "#161618", // Dark background
-          backgroundGradientFrom: "#161618", // Gradient start
-          backgroundGradientTo: "#2a2a2a", // Gradient end
-          decimalPlaces: 1,
+          backgroundGradientFrom: "#232323", // Gradient start
+          backgroundGradientTo: "#3a3a3a", // Gradient end
+          decimalPlaces: 2,
           color: (opacity = 1) => `rgba(0, 255, 255, ${opacity})`, // Bright cyan line color
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // White labels for contrast
           style: {
@@ -718,6 +777,12 @@ export default function Workouts() {
 
 const styles = StyleSheet.create({
 
+
+  flatListStyle: {
+    // Adjust padding to center items and log it
+    paddingHorizontal: (width - ITEM_WIDTH - 74) / 2,
+  },
+
   container: {
     flex: 1,
     padding: 20,
@@ -725,12 +790,20 @@ const styles = StyleSheet.create({
   },
 
   carouselItemStyle: {
-    justifyContent: 'center',
+    width: ITEM_WIDTH,
+    height: HEIGHT,
+    margin: ITEM_MARGIN,
+    backgroundColor: '#333', // Or any other color
+    borderRadius: 10,
+    overflow: 'hidden',
     alignItems: 'center',
-    height: 250,
-    marginTop: 50,
-    marginRight: 29,
-    padding: 30,
+    justifyContent: 'center',
+  },
+
+  imageStyle: {
+    width: '100%', // Make the image take the full width of the container
+    height: ITEM_HEIGHT, // Adjust the height to maintain aspect ratio
+    resizeMode: 'contain', // Ensures the entire image is visible
   },
 
 
@@ -744,15 +817,15 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 255, 255, 0.55)', // Cyan text shadow for a neon effect
     textShadowOffset: {width: 0, height: 0},
     textShadowRadius: 10,
-    marginTop: 20,
+    margin: 10,
     textAlign: 'center',
-    // Add more styling as needed to fit your design theme
   },
 
 
   //________________________  SUMMARY BUTTON ____________________________________
   summaryButton: {
-    marginTop: -9,
+    marginTop: -7,
+    marginBottom: 10,
     backgroundColor: '#0f0f0f', // Dark color for high-tech theme
     padding: 10,
     borderRadius: 5,
