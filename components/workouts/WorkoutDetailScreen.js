@@ -5,6 +5,7 @@ import axios from 'axios';
 import Workouts from './Workouts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/authcontext';
+import workoutGif from '../../assets/gifs/12501301-Weighted-Crunch-(behind-head)_Waist_180.gif';
 
 export default function WorkoutDetailScreen({ route }) {
     const { workoutGroup } = route.params;
@@ -118,7 +119,7 @@ export default function WorkoutDetailScreen({ route }) {
     <View style={styles.container}>
         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={24} color="white" />
+                <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>
             <Text style={styles.title}>{workoutGroup.groupName}</Text>
         </View>
@@ -127,6 +128,13 @@ export default function WorkoutDetailScreen({ route }) {
         <Text style={styles.workoutDescription}>
             {workoutGroup.workouts[currentExerciseIndex].description}
         </Text>
+
+
+        <Image 
+            source={workoutGif} 
+            style={styles.workoutGif} 
+        />
+
 
         <View style={styles.bottomContent}>
             <Text style={styles.subtitle}>Tip: {workoutGroup.workouts[currentExerciseIndex].tip}</Text>
@@ -165,7 +173,7 @@ export default function WorkoutDetailScreen({ route }) {
                             style={[styles.button, styles.buttonClose]}
                             onPress={handleQuizSubmit}
                         >
-                            <Text style={styles.textStyle}>Submit Answers</Text>
+                            <Text style={styles.buttonText}>Submit Answers</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -177,7 +185,7 @@ export default function WorkoutDetailScreen({ route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0d0d0d',
+        backgroundColor: '#ffffff',
         padding: 20,
     },
     header: {
@@ -189,7 +197,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'white',
+        color: 'black',
         marginLeft: 10,
     },
     content: {
@@ -197,20 +205,34 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+
+    workoutGif: {
+        width: 300,
+        height: 300,
+        margin: 20,
+        alignSelf: 'center', // Centers the GIF in the view
+        backgroundColor: '#0d0d0d', // Matches the app background color
+        borderRadius: 10, // Optional: Adds rounded corners
+    },
+
+
+
+
     subtitle: {
         fontSize: 18,
-        color: 'white',
+        color: 'black',
         marginBottom: 10,
     },
     button: {
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        backgroundColor: '#3a90e2',
+        backgroundColor: 'black',
         marginTop: 20,
+        marginBottom: 20,
     },
     buttonText: {
-        color: '#ffffff',
+        color: 'white',
         fontWeight: '600',
         fontSize: 16,
     },
@@ -230,7 +252,7 @@ const styles = StyleSheet.create({
       workoutDescription: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'white',
+        color: 'black',
         marginBottom: 20,
         textAlign: 'center',
     },
@@ -247,7 +269,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         margin: 20,
-        backgroundColor: "white",
+        backgroundColor: "#e0e0e0",
         borderRadius: 20,
         padding: 35,
         alignItems: "center",
@@ -264,6 +286,7 @@ const styles = StyleSheet.create({
         height: 40,
         margin: 12,
         borderWidth: 1,
+        color: 'black',
         padding: 10,
         width: 200
     },
