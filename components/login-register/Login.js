@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import TypeWriter from 'react-native-typewriter';
 import { useAuth } from '../../context/authcontext';
-import { GLOBAL_IP } from 'react-native-dotenv';
 
 export default function Login() {
 
@@ -27,7 +26,6 @@ export default function Login() {
   const handleLogin = async () => {
 
     try {
-      console.log(GLOBAL_IP);
       const response = await axios.post('http://'+ process.env.GLOBAL_IP + ':3000/login', {
         userName: username,
         password: password,
@@ -123,6 +121,7 @@ export default function Login() {
               placeholderTextColor="#6b6776"
               value={password}
               onChangeText={(text) => setPassword(text)}
+              onSubmitEditing={handleLogin}
             />
             <View style={styles.apart}>
               <View style={styles.button}>
