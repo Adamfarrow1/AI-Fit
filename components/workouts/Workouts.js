@@ -53,10 +53,10 @@ const reducer = (state, action) => {
 };
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.7; // 60% of the screen width
-const ITEM_HEIGHT = ITEM_WIDTH; // For an aspect ratio of 3:2, adjust as needed
-const ITEM_MARGIN = 14;
-const HEIGHT = 330;
+const ITEM_WIDTH = width * 0.7; // 70% of the screen width
+const ITEM_HEIGHT = ITEM_WIDTH; // Maintaining a 3:2 aspect ratio
+const ITEM_MARGIN = width * 0.04; // Example: 4% of the screen width, adjust as needed
+const HEIGHT = ITEM_HEIGHT + (2 * ITEM_MARGIN);
 
 
 
@@ -106,9 +106,9 @@ export default function Workouts() {
 
 
 
-
-
-
+  const handleNavigateToMonthlyProgress = () => {
+    navigation.navigate('MonthlyProgress'); // Replace 'MonthlyProgress' with the actual route name if it's different
+};
 
 
 
@@ -728,38 +728,49 @@ export default function Workouts() {
         decelerationRate={"fast"}
         getItemLayout={getItemLayout} 
         initialNumToRender={15}
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.flatListStyle}
       />
 
 
       <LineChart
         data={data}
-        width={Dimensions.get("window").width}
-        height={200}
+        width={Dimensions.get("window").width} // Full width of the device
+        height={200} // Increased height for a larger display
         yAxisSuffix="lbs"
         yAxisInterval={1}
         chartConfig={{
-          backgroundColor: "#161618", // Dark background
-          backgroundGradientFrom: "#232323", // Gradient start
-          backgroundGradientTo: "#3a3a3a", // Gradient end
+          backgroundColor: "#0d0d0d", // Very dark background
+          backgroundGradientFrom: "#141416", 
+          backgroundGradientTo: "#282828", 
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(0, 255, 255, ${opacity})`, // Bright cyan line color
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // White labels for contrast
+          color: (opacity = 1) => `rgba(100, 255, 255, ${opacity})`, // Bright line for contrast
+          labelColor: (opacity = 1) => `rgba(200, 200, 200, ${opacity})`, // Lighter label for readability
           style: {
-            borderRadius: 16,
+            borderRadius: 15,
+            paddingVertical: 10 // Padding for aesthetic spacing
           },
           propsForDots: {
-            r: "6",
+            r: "5", 
             strokeWidth: "2",
-            stroke: "#00ffff", // Dot border color
+            stroke: "#007AFF", // Bright stroke color for dots
           },
         }}
-        bezier // Smooth line curves
+        bezier // Smooth curve for the line
         style={{
-          marginVertical: 8,
-          borderRadius: 16,
+          marginVertical: -2,
+          borderRadius: 15,
         }}
       />
+
+      <TouchableOpacity 
+          style={styles.monthlyProgressButton}
+          onPress={handleNavigateToMonthlyProgress}
+      >
+          <Text style={styles.buttonText}>View Monthly Progress</Text>
+      </TouchableOpacity>
+
+
 
 
     </View>
@@ -778,15 +789,44 @@ export default function Workouts() {
 const styles = StyleSheet.create({
 
 
-  flatListStyle: {
-    // Adjust padding to center items and log it
-    paddingHorizontal: (width - ITEM_WIDTH - 74) / 2,
-  },
 
   container: {
     flex: 1,
     padding: 20,
     backgroundColor: '#161618',
+  },
+
+
+
+  monthlyProgressButton: {
+    backgroundColor: '#007AFF', // A neutral blue, adjust as needed
+    padding: 10,
+    marginBottom: -15,
+    marginTop: 17,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3, // Subtle shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.5,
+    marginVertical: 2,
+  },
+  buttonText: {
+      color: '#FFFFFF', // White text for contrast
+      fontSize: 15,
+      fontWeight: '500', // Medium weight for readability
+  },
+
+
+
+  
+
+  //________________________  CAROUSEL  ____________________________________
+  
+  flatListStyle: {
+    paddingHorizontal: (width - ITEM_WIDTH - 74) / 2,
   },
 
   carouselItemStyle: {
@@ -802,6 +842,7 @@ const styles = StyleSheet.create({
 
   imageStyle: {
     width: '100%', // Make the image take the full width of the container
+    marginTop: -6,
     height: ITEM_HEIGHT, // Adjust the height to maintain aspect ratio
     resizeMode: 'contain', // Ensures the entire image is visible
   },
@@ -822,9 +863,14 @@ const styles = StyleSheet.create({
   },
 
 
+
+
+
+
   //________________________  SUMMARY BUTTON ____________________________________
   summaryButton: {
-    marginTop: 1,
+    marginTop: -7,
+    marginBottom: 10,
     backgroundColor: '#0f0f0f', // Dark color for high-tech theme
     padding: 10,
     borderRadius: 5,
