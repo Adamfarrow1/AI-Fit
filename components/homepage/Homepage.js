@@ -55,7 +55,7 @@ export default function Home() {
       setPersonalInfo(data);
       setModalState({ ...modalState, isVisible: true });
     } catch (error) {
-      console.error('Error fetching personal info:', error);
+      console.error( error);
     }
   }, [modalState]);
 
@@ -338,13 +338,14 @@ const styles = StyleSheet.create({
   label: {
     flex: 2,
     marginLeft: 20,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFF', // White text for labels
   },
   value: {
-    flex: 1,
-    fontSize: 16,
+    flex: 2.5,
+    fontSize: 14,
+    textAlign: 'center',
     color: '#FFF', // White text for values
   },
   inputBox: {
