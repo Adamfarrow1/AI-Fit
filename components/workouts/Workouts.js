@@ -59,6 +59,8 @@ const ITEM_MARGIN = width * 0.04; // Example: 4% of the screen width, adjust as 
 const HEIGHT = ITEM_HEIGHT + (2 * ITEM_MARGIN);
 
 
+const aihight = ITEM_HEIGHT * -0.4// SUPPOSED TO KEEP THE AI WORKOUT DISCRIPTION BOX IN THE SAME PLACE BUT DOESNT WORK
+
 
 
 
@@ -240,7 +242,7 @@ export default function Workouts() {
 
 
     setIsFetchingWorkout(true);
-    const userPrompt = `You are currently working as part of an ai fitness app. Your task is to provide a short, brief, 2-sentence summary of an ideal personalized workout for today for a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, with a fitness goal of ${user.goal}. Consider their recent workouts: ${user.workoutHistory}. Their name is ${user.fullName}`;
+    const userPrompt = `You're currently contributing to an AI fitness app, tasked with generating concise, personalized workout summaries. For ${user.fullName}, a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, aiming for ${user.goal}, and with a workout history of ${user.workoutHistory}, your role is to provide a tailored three-sentence exercise plan.`;
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -252,7 +254,7 @@ export default function Workouts() {
         },
         body: JSON.stringify({
           model: "text-davinci-003",
-          prompt: userPrompt + " Please include why this workout is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them. Ensure that you do not include any extra characters or symbols",
+          prompt: userPrompt + " Please include why this workout type is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them. Ensure that you do not include any extra characters or symbols",
           max_tokens: 100,
           temperature: 1,
         }),
@@ -685,26 +687,39 @@ export default function Workouts() {
 
   
 
-  const renderSummaryModal = () => (
-    <Modal
-      visible={state.showSummaryModal}
-      onRequestClose={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
-      transparent={true} // Make the modal transparent to allow for custom background
-      animationType="slide" // Smooth slide animation
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>{state.aiWorkoutDescription}</Text>
-          <TouchableOpacity 
-            style={styles.closeButton} 
-            onPress={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
+  const renderSummaryModal = () => {
+    return (
+      <Modal
+          visible={state.showSummaryModal}
+          onRequestClose={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
+          transparent={true}
+          animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+              <Text style={styles.modalText}>{state.aiWorkoutDescription}</Text>
+              
+              {/* "Go to Workout" Button */}
+              <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => navigateToWorkout()}
+              >
+                  <Text style={styles.buttonText}>Go to Workout</Text>
+              </TouchableOpacity>
+
+              {/* Close Button - Now at the bottom */}
+              <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
+              >
+                  <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
   );
+};
+
 
 
   return (
@@ -899,44 +914,62 @@ const styles = StyleSheet.create({
 
 
   //__________________________ SUMMARY ________________________________________
-  modalContainer: {
-    backgroundColor: 'grey', // Dark blue background
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
-    padding: 25,
-    marginBottom:58,
-    alignItems: 'center',
-    width: 310,
-    justifyContent: 'center',
-    shadowColor: '#000', // Black shadow for a subtle depth effect
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  modalText: {
-    color: 'black', // Light Blue Text
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  closeButton: {
-    backgroundColor: '#344955', // Darker blue for the button
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  closeButtonText: {
-    color: '#FFFFFF', // White text for contrast
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Semi-transparent background
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 25,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Darker overlay for contrast
+  },
+  modalContainer: {
+    backgroundColor: '#2A2A2D', // Dark background
+    borderRadius: 10, // Sharp edges for a modern look
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+        width: 0,
+        height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 10,
+    margin: 20,
+    maxWidth: '80%', // Maximum width
+    minWidth: '50%', // Minimum width
+    maxHeight: '80%', // Maximum height
+    minHeight: '20%', // Minimum height
+  },
+  modalText: {
+      marginBottom: 20,
+      fontSize: 16,
+      textAlign: 'center',
+      color: '#E8E8E8', // Light text for contrast
+      // Consider a custom font here for a more tech look
+  },
+  button: {
+      borderRadius: 5, // Sharp edges
+      padding: 12,
+      elevation: 2,
+      backgroundColor: '#007AFF', // Vibrant accent color
+      width: '80%',
+      marginBottom: 10,
+  },
+  buttonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      textAlign: 'center',
+  },
+  closeButton: {
+      backgroundColor: '#555559', // Subtle color for secondary button
+      borderRadius: 5,
+      padding: 12,
+      elevation: 2,
+      width: '80%',
+  },
+  closeButtonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      textAlign: 'center',
   },
   
   
