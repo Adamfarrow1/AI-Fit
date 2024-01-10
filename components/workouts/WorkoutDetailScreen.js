@@ -5,7 +5,9 @@ import axios from 'axios';
 import Workouts from './Workouts';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/authcontext';
-import workoutGif from '../../assets/gifs/12501301-Weighted-Crunch-(behind-head)_Waist_180.gif';
+import workoutGif from '../../assets/gifs/22141301-Barbell-Deadlift-(female)_Hips_1080.gif';
+import GifData from '../../gifs.json';
+
 
 export default function WorkoutDetailScreen({ route }) {
     const { workoutGroup } = route.params;
@@ -16,6 +18,7 @@ export default function WorkoutDetailScreen({ route }) {
     const [showQuiz, setShowQuiz] = useState(false);
     const [answerOne, setAnswerOne] = useState('');
     const [answerTwo, setAnswerTwo] = useState('');
+
     
 
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -25,6 +28,12 @@ export default function WorkoutDetailScreen({ route }) {
         return days[new Date().getDay()];
     };
 
+    const findGifUrl = (exerciseName) => {
+        const gif = GifData.gifs.find(g => g.name === exerciseName);
+        return gif ? gif.frames[0] : workoutGif; // Replace with a valid default GIF URL
+    };
+
+    
 
     const incrementSet = () => {
         const currentExercise = workoutGroup.workouts[currentExerciseIndex];
@@ -120,9 +129,10 @@ export default function WorkoutDetailScreen({ route }) {
         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={24} color="black" />
+                <Text> </Text>
             </TouchableOpacity>
-            <Text style={styles.title}>{workoutGroup.groupName}</Text>
         </View>
+        <Text style={styles.title}>{workoutGroup.workouts[currentExerciseIndex].name}</Text>
 
         {/* Workout Description */}
         <Text style={styles.workoutDescription}>
@@ -131,7 +141,7 @@ export default function WorkoutDetailScreen({ route }) {
 
 
         <Image 
-            source={workoutGif} 
+            source={{ uri: findGifUrl(workoutGroup.workouts[currentExerciseIndex].name) }}
             style={styles.workoutGif} 
         />
 
@@ -195,10 +205,11 @@ const styles = StyleSheet.create({
         marginTop: 38,
     },
     title: {
+        marginTop: -45,
+        textAlign: 'center',
         fontSize: 24,
         fontWeight: 'bold',
         color: 'black',
-        marginLeft: 10,
     },
     content: {
         flex: 1,
@@ -211,7 +222,6 @@ const styles = StyleSheet.create({
         height: 300,
         margin: 20,
         alignSelf: 'center', // Centers the GIF in the view
-        backgroundColor: '#0d0d0d', // Matches the app background color
         borderRadius: 10, // Optional: Adds rounded corners
     },
 
@@ -250,7 +260,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
       },
       workoutDescription: {
-        fontSize: 20,
+        fontSize: 17,
         fontWeight: 'bold',
         color: 'black',
         marginBottom: 20,
