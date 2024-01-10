@@ -139,13 +139,13 @@ export default function Mealplans({ navigation }) {
       }
       else{
         setMealsData(response.data.user.meals);
-        if(response.data.user.meals[0].foods[0].calories && response.data.user.meals[1].foods[0].calories && response.data.user.meals[2].foods[0].calories){
+        if(response.data.user.meals[0].details.calories && response.data.user.meals[1].details.calories && response.data.user.meals[2].details.calories){
         await setReady(false);
         circularProgressRef.current.reAnimate(0,0,2000, Easing.linear);
         setCaloriesConsumed(0);  
-        extractNumberFromStringAsInteger(response.data.user.meals[0].foods[0].calories)
-        extractNumberFromStringAsInteger(response.data.user.meals[1].foods[0].calories)
-        extractNumberFromStringAsInteger(response.data.user.meals[2].foods[0].calories)
+        extractNumberFromStringAsInteger(response.data.user.meals[0].details.calories)
+        extractNumberFromStringAsInteger(response.data.user.meals[1].details.calories)
+        extractNumberFromStringAsInteger(response.data.user.meals[2].details.calories)
         await setReady(true);
         }
         // circularProgressRef.current.animate(caloriesRatio,2000, Easing.linear);
@@ -235,10 +235,10 @@ export default function Mealplans({ navigation }) {
       setCaloriesConsumed(0);
       console.log("--------------------------------------")
       console.log(Math.round(totalCaloriesNeeded / 3))
-      let prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories? format your reponse like so (do not use commas to seperate except for ingredients): Breakfast: (food name): (number of calories) calories: (ingredients ingredients seperated by comma and use queries known by USDA API)";
+      let prompt = "Can you give me three meal reccomendations in order to hit a daily goal of " + totalCaloriesNeeded + " calories? format your response as a json like so where mealName should be dinner or lunch etc. : [{mealName: String,details: {name: String,calories: String,ingredients: String}}]";
 
       if(user.diet !== ""){
-        prompt = "Can you give me three meals with each meal containing " + Math.round(totalCaloriesNeeded / 3) + " calories and has a restriction of " + user.diet  + "? format your reponse like so (do not use commas to seperate except for ingredients): Breakfast: (food name): (number of calories) calories: (ingredients seperated by comma and use queries known by USDA API)";
+        prompt = "Can you give me three meal reccomendations in order to hit a daily goal of " + totalCaloriesNeeded + " calories and has a restriction of " + user.diet  + "? format your response as a json like so where mealName should be dinner or lunch etc. : [{mealName: String,details: {name: String,calories: String,ingredients: String}}]";
       }
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -248,7 +248,7 @@ export default function Mealplans({ navigation }) {
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "text-davinci-003",
+          model: "gpt-3.5-turbo-instruct",
           prompt: prompt,
           max_tokens: 1000,
           temperature: 1,
@@ -258,9 +258,14 @@ export default function Mealplans({ navigation }) {
       if (res.ok) {
         
         const responseJson = await res.json();
-       
+       console.log("this is the chatgpt call________---_____----________-")
         console.log(responseJson.choices[0].text);
-        parseMeals(responseJson.choices[0].text.toString());
+        // parseMeals(responseJson.choices[0].text.toString());
+        const tempmeals = JSON.parse(responseJson.choices[0].text);
+        setMealsData(tempmeals);
+        updateMeals(tempmeals);
+        console.log("this is where the meals that show on screen are:==========================")
+        console.log(JSON.parse(responseJson.choices[0].text));
 
         
       } else {
@@ -416,15 +421,14 @@ export default function Mealplans({ navigation }) {
   {mealsData.map((meal, index) => (
     <View key={index}>
       <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
-      {meal.foods.map((food, foodIndex) => (
         <TouchableOpacity
-          key={foodIndex}
           style={styles.foodContainer}
-          onPress={() => { handleFoodContainerPress(food) }} // Remove the "meal" parameter here
+          onPress={() => { handleFoodContainerPress(meal.details) }}
+          key={index}
         >
           <View style={styles.foodTitleMaxW}>
-            <Text style={styles.foodTitle}>{food.name}</Text>
-            <Text style={styles.foodsubTitle}>{food.calories}</Text>
+            <Text style={styles.foodTitle}>{meal.details.name}</Text>
+            <Text style={styles.foodsubTitle}>{meal.details.calories + " Calories"}</Text>
           </View>
           <View style={{ flexDirection: 'row' }}>
             <Text style={styles.details}>Details</Text>
@@ -436,7 +440,6 @@ export default function Mealplans({ navigation }) {
             />
           </View>
         </TouchableOpacity>
-      ))}
     </View>
   ))}
   

@@ -38,7 +38,7 @@ const DetailsScreen = ({ route }) => {
           'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "text-davinci-003",
+          model: "gpt-3.5-turbo-instruct",
           prompt: "Give me a recipe for " + meal.meals.name + " if it has " + meal.meals.calories + " with these ingredients " + meal.meals.ingredients + ". Respond professionally and with just the ingredients followed by the instructions.",
           max_tokens: 300,
           temperature: 1,
@@ -190,13 +190,13 @@ const DetailsScreen = ({ route }) => {
       });
       
       console.log('new macros======================================');
-      console.log(response.data.foods[0].foodNutrients);
+      console.log(response.data.details.foodNutrients);
       
       const ingredientName = ingredient.trim(); // Use lowercase for consistency
       
       const newMacroData = {
-        ingredientName: response.data.foods[0].description,
-        macros: response.data.foods[0].foodNutrients.map((nutrient) => ({
+        ingredientName: response.data.details.description,
+        macros: response.data.details.foodNutrients.map((nutrient) => ({
           name: nutrient.nutrientName.trim(),
           value: nutrient.value,
           unit: nutrient.unitName.trim(),

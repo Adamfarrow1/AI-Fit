@@ -409,7 +409,7 @@ const mealSchema = new mongoose.Schema({
   meals: [
     {
       mealName: String,
-      foods: [
+      details:
         {
           name: String,
           calories: String,
@@ -417,7 +417,6 @@ const mealSchema = new mongoose.Schema({
           recipe: String,
           macros: String,
         }
-      ]
     }
   ]
 });
@@ -473,18 +472,18 @@ app.post('/updateMacros', async (req, res) => {
 
     const updatedMeal = await Meal.findOneAndUpdate(
       {
-        "meals.foods": {
+        "meals.details": {
           $elemMatch: { "_id": foodId, "name": mealName }
         }
       },
       {
         $set: {
-          "meals.$[mealElem].foods.$[foodElem].macros": macros,
+          "meals.$[mealElem].details.$[foodElem].macros": macros,
         },
       },
       {
         arrayFilters: [
-          { "mealElem.foods.name": mealName },
+          { "mealElem.details.name": mealName },
           { "foodElem._id": foodId }
         ],
         new: true
@@ -513,13 +512,13 @@ app.post('/fetchMacros', async (req, res) => {
 
     const updatedFood = await Meal.findOneAndUpdate(
       {
-        "meals.foods": {
+        "meals.details": {
           $elemMatch: { "_id": foodId, "name": mealName }
         }
       },
       {
         arrayFilters: [
-          { "mealElem.foods.name": mealName },
+          { "mealElem.details.name": mealName },
           { "foodElem._id": foodId }
         ],
         new: true
@@ -532,7 +531,7 @@ app.post('/fetchMacros', async (req, res) => {
     }
 
     const updatedFoodDetails = updatedFood.meals.reduce((result, meal) => {
-      const food = meal.foods.find(f => f._id.toString() === foodId.toString());
+      const food = meal.details.find(f => f._id.toString() === foodId.toString());
       if (food) {
         result = food;
       }
@@ -586,18 +585,18 @@ app.post('/updateRecipe', async (req, res) => {
 
     const updatedMeal = await Meal.findOneAndUpdate(
       {
-        "meals.foods": {
+        "meals.details": {
           $elemMatch: { "_id": foodId, "name": mealName }
         }
       },
       {
         $set: {
-          "meals.$[mealElem].foods.$[foodElem].recipe": recipe,
+          "meals.$[mealElem].details.$[foodElem].recipe": recipe,
         },
       },
       {
         arrayFilters: [
-          { "mealElem.foods.name": mealName },
+          { "mealElem.details.name": mealName },
           { "foodElem._id": foodId }
         ],
         new: true
@@ -610,7 +609,7 @@ app.post('/updateRecipe', async (req, res) => {
     }
 
     console.log('Meal updated successfully:', updatedMeal);
-    console.log('Updated recipe:', updatedMeal.meals.find(meal => meal.foods.find(food => food._id.equals(foodId))).foods.find(food => food._id.equals(foodId)).recipe);
+    console.log('Updated recipe:', updatedMeal.meals.find(meal => meal.details.find(food => food._id.equals(foodId))).details.find(food => food._id.equals(foodId)).recipe);
 
     res.json({ success: true, updatedMeal });
   } catch (error) {
