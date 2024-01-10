@@ -1,0 +1,285 @@
+{
+    "gifs": [
+        {
+        "name": "Archer-Pull-up",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/archer+pullup/32931301-Archer-Pull-up_Back_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/archer+pullup/32931301-Archer-Pull-up_Back_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/archer+pullup/32931301-Archer-Pull-up_Back_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/archer+pullup/32931301-Archer-Pull-up_Back_720.gif"
+
+        ]
+        },
+        {
+        "name": "Arm-Circles",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+circles/39051301-Arm-Circles_Shoulders_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+circles/39051301-Arm-Circles_Shoulders_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+circles/39051301-Arm-Circles_Shoulders_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+circles/39051301-Arm-Circles_Shoulders_720.gif"
+        ]
+        },
+
+        {
+        "name": "Arm-Crossover",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+crossover/46641301-Arm-Crossover-(female)_Chest_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+crossover/46641301-Arm-Crossover-(female)_Chest_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+crossover/46641301-Arm-Crossover-(female)_Chest_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/arm+crossover/46641301-Arm-Crossover-(female)_Chest_720.gif"
+
+        ]
+        },
+
+
+        {
+        "name": "Assisted-Pull-up",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/assisted+pullups/00171301-Assisted-Pull-up_Back_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/assisted+pullups/00171301-Assisted-Pull-up_Back_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/assisted+pullups/00171301-Assisted-Pull-up_Back_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/assisted+pullups/00171301-Assisted-Pull-up_Back_720.gif"
+        ]
+        },
+
+   
+
+
+        {
+        "name": "Barbell-Curl",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/barbell+curl/35921301-Barbell-Curl-(female)_Upper-Arms_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/barbell+curl/35921301-Barbell-Curl-(female)_Upper-Arms_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/barbell+curl/35921301-Barbell-Curl-(female)_Upper-Arms_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/barbell+curl/35921301-Barbell-Curl-(female)_Upper-Arms_720.gif"
+
+        ]
+        },
+        {
+        "name": "Barbell-Bench-Press",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/benchpress/68131301-Barbell-Bench-Press-(side-POV)_Chest_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/benchpress/68131301-Barbell-Bench-Press-(side-POV)_Chest_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/benchpress/68131301-Barbell-Bench-Press-(side-POV)_Chest_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/benchpress/68131301-Barbell-Bench-Press-(side-POV)_Chest_720.gif"
+        ]
+        },
+
+        {
+        "name": "Barbell-Bent-Over-Row",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/bentover+rows/22421301-Barbell-Bent-Over-Row-(female)_Back_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/bentover+rows/22421301-Barbell-Bent-Over-Row-(female)_Back_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/bentover+rows/22421301-Barbell-Bent-Over-Row-(female)_Back_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/bentover+rows/22421301-Barbell-Bent-Over-Row-(female)_Back_720.gif"
+
+        ]
+        },
+
+
+        {
+        "name": "Barbell-Deadlift",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlift/22141301-Barbell-Deadlift-(female)_Hips_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlift/22141301-Barbell-Deadlift-(female)_Hips_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlift/22141301-Barbell-Deadlift-(female)_Hips_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlift/22141301-Barbell-Deadlift-(female)_Hips_720.gif"
+        ]
+        },
+        {
+        "name": "Barbell-Behind-The-Back-Deadlift",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlifts/56631301-Barbell-Behind-The-Back-Deadlift_Hips_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlifts/56631301-Barbell-Behind-The-Back-Deadlift_Hips_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlifts/56631301-Barbell-Behind-The-Back-Deadlift_Hips_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/deadlifts/56631301-Barbell-Behind-The-Back-Deadlift_Hips_720.gif"
+        ]
+        },
+
+        {
+        "name": "Bench-Dip",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/dips/01291301-Bench-Dip-(knees-bent)_Upper-Arms_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/dips/01291301-Bench-Dip-(knees-bent)_Upper-Arms_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/dips/01291301-Bench-Dip-(knees-bent)_Upper-Arms_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/dips/01291301-Bench-Dip-(knees-bent)_Upper-Arms_720.gif"
+
+        ]
+        },
+
+        {
+        "name": "Basic-to-Cross-Donkey-Kick",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/donkey+kick/63161301-Basic-to-Cross-Donkey-Kick-(female)_Hips_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/donkey+kick/63161301-Basic-to-Cross-Donkey-Kick-(female)_Hips_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/donkey+kick/63161301-Basic-to-Cross-Donkey-Kick-(female)_Hips_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/donkey+kick/63161301-Basic-to-Cross-Donkey-Kick-(female)_Hips_720.gif"
+        ]
+        },
+
+        {
+        "name": "Barbell-Front-Bench-Squat",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/front+box+squar/37271301-Barbell-Front-Bench-Squat_Thighs_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/front+box+squar/37271301-Barbell-Front-Bench-Squat_Thighs_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/front+box+squar/37271301-Barbell-Front-Bench-Squat_Thighs_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/front+box+squar/37271301-Barbell-Front-Bench-Squat_Thighs_720.gif"
+        ]
+        },
+
+        {
+        "name": "Arm-slingers-Hanging-Bent-Knee-Legs",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hanging+knee+raises/23551301-Arm-slingers-Hanging-Bent-Knee-Legs_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hanging+knee+raises/23551301-Arm-slingers-Hanging-Bent-Knee-Legs_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hanging+knee+raises/23551301-Arm-slingers-Hanging-Bent-Knee-Legs_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hanging+knee+raises/23551301-Arm-slingers-Hanging-Bent-Knee-Legs_Waist_720.gif"
+
+        ]
+        },
+
+
+        {
+        "name": "90-Degree-Heel-Touch-Abs",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/heel+touches/64281301-90-Degree-Heel-Touch-(male)_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/heel+touches/64281301-90-Degree-Heel-Touch-(male)_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/heel+touches/64281301-90-Degree-Heel-Touch-(male)_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/heel+touches/64281301-90-Degree-Heel-Touch-(male)_Waist_720.gif"
+        ]
+        },
+        {
+        "name": "45-Degree-Hip-Extension-Glute-Focused",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hip+extension/49371301-45-Degree-Hip-Extension-Glute-Focused-(female)_Hips-FIX_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hip+extension/49371301-45-Degree-Hip-Extension-Glute-Focused-(female)_Hips-FIX_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hip+extension/49371301-45-Degree-Hip-Extension-Glute-Focused-(female)_Hips-FIX_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/hip+extension/49371301-45-Degree-Hip-Extension-Glute-Focused-(female)_Hips-FIX_720.gif"
+        ]
+        },
+
+        {
+        "name": "Air-Twisting-Crunch",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/knee+to+elbow/00041301-Air-Twisting-Crunch_waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/knee+to+elbow/00041301-Air-Twisting-Crunch_waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/knee+to+elbow/00041301-Air-Twisting-Crunch_waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/knee+to+elbow/00041301-Air-Twisting-Crunch_waist_720.gif"
+
+        ]
+        },
+
+
+        {
+        "name": "Alternate-Lateral-Pulldown",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/lateral+pulldown/00071301-Alternate-Lateral-Pulldown_back_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/lateral+pulldown/00071301-Alternate-Lateral-Pulldown_back_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/lateral+pulldown/00071301-Alternate-Lateral-Pulldown_back_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/lateral+pulldown/00071301-Alternate-Lateral-Pulldown_back_720.gif"
+        ]
+        },
+        {
+        "name": "Alternate-Leg-Raise",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/leg+raises/16131301-Alternate-Leg-Raise_Hips-FIX_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/leg+raises/16131301-Alternate-Leg-Raise_Hips-FIX_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/leg+raises/16131301-Alternate-Leg-Raise_Hips-FIX_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/leg+raises/16131301-Alternate-Leg-Raise_Hips-FIX_720.gif"
+        ]
+        },
+        {
+        "name": "Band-Alternate-Low-Chest-Fly",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/low+chest+flys/40781301-Band-Alternate-Low-Chest-Fly-(male)_Chest_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/low+chest+flys/40781301-Band-Alternate-Low-Chest-Fly-(male)_Chest_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/low+chest+flys/40781301-Band-Alternate-Low-Chest-Fly-(male)_Chest_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/low+chest+flys/40781301-Band-Alternate-Low-Chest-Fly-(male)_Chest_720.gif"
+        ]
+        },
+        {
+        "name": "45-degree-Bycicle-Twisting-Crunch",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/obliques/11851301-45-degree-Bycicle-Twisting-Crunch_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/obliques/11851301-45-degree-Bycicle-Twisting-Crunch_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/obliques/11851301-45-degree-Bycicle-Twisting-Crunch_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/obliques/11851301-45-degree-Bycicle-Twisting-Crunch_Waist_720.gif"
+        ]
+        },
+        {
+        "name": "Barbell-Back-Wide-Shrug",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/shrugs/52261301-Barbell-Back-Wide-Shrug_Back_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/shrugs/52261301-Barbell-Back-Wide-Shrug_Back_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/shrugs/52261301-Barbell-Back-Wide-Shrug_Back_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/shrugs/52261301-Barbell-Back-Wide-Shrug_Back_720.gif"
+        ]
+        },
+        {
+        "name": "45-degree-Side-Bend_Waist",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/side+abs/00021301-45u%CC%A8-Side-Bend_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/side+abs/00021301-45u%CC%A8-Side-Bend_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/side+abs/00021301-45u%CC%A8-Side-Bend_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/side+abs/00021301-45u%CC%A8-Side-Bend_Waist_720.gif"
+        ]
+        },
+
+        {
+        "name": "Sit-up",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp%3F/24761301-3-4-Sit-up-(female)_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp%3F/24761301-3-4-Sit-up-(female)_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp%3F/24761301-3-4-Sit-up-(female)_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp%3F/24761301-3-4-Sit-up-(female)_Waist_720.gif"
+        ]
+        },
+        {
+        "name": "Weighted-Crunch",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp/12501301-Weighted-Crunch-(behind-head)_Waist_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp/12501301-Weighted-Crunch-(behind-head)_Waist_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp/12501301-Weighted-Crunch-(behind-head)_Waist_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/situp/12501301-Weighted-Crunch-(behind-head)_Waist_720.gif"
+        ]
+        },
+        {
+        "name": "Assisted-Bulgarian-Split-Squat",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/split+squat/44421301-Assisted-Bulgarian-Split-Squat_Thighs_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/split+squat/44421301-Assisted-Bulgarian-Split-Squat_Thighs_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/split+squat/44421301-Assisted-Bulgarian-Split-Squat_Thighs_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/split+squat/44421301-Assisted-Bulgarian-Split-Squat_Thighs_720.gif"
+        ]
+        },
+        {
+        "name": "Barbell-Full-Squat",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/squat/14611301-Barbell-Full-Squat-(Back-POV)_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/squat/14611301-Barbell-Full-Squat-(Back-POV)_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/squat/14611301-Barbell-Full-Squat-(Back-POV)_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/squat/14611301-Barbell-Full-Squat-(Back-POV)_720.gif"
+        ]
+        },
+        {
+        "name": "Alternating-Superman_Hips",
+        "frames": [
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/SuperMan/47151301-Alternating-Superman_Hips_1080.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/SuperMan/47151301-Alternating-Superman_Hips_180.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/SuperMan/47151301-Alternating-Superman_Hips_360.gif",
+            "https://fitnessgifs.s3.us-east-2.amazonaws.com/gifs/SuperMan/47151301-Alternating-Superman_Hips_720.gif"
+        ]
+        },
+        {
+        "name": "",
+        "frames": [
+            "",
+            "",
+            "",
+            ""
+        ]
+        }
+
+    ]
+}
+  
