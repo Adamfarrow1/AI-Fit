@@ -627,34 +627,151 @@ const customMealSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  meals: [
-    {
-      mealName: String,
-      foods: {
-        name: String,
-        calories: String,
-        ingredients: [
-          {
-            amount: String,
-            name: String,
-          },
-        ],
-        recipe: String,
-        macros: String,
+  Monday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
       },
-    },
-  ],
+    ],
+  },
+  Tuesday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
+  Wednesday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
+  Thursday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
+  Friday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
+  Saturday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
+  Sunday: {
+    meals: [
+      {
+        mealName: String,
+        details: {
+          name: String,
+          calories: String,
+          ingredients: [
+            {
+              amount: String,
+              name: String,
+            },
+          ],
+          recipe: String,
+          macros: String,
+        },
+      },
+    ],
+  },
 });
 
 const CustomMeal = mongoose.model('custom_meals', customMealSchema);
 
 app.post('/customMeals', async (req, res) => {
   try {
-    const { _id, mealsData } = req.body;
+    const { _id, mealsData, dayOfWeek } = req.body;
     // Convert the provided _id (string) to a mongoose ObjectId
     const userId = new mongoose.Types.ObjectId(_id); // Use 'new'
     // Find the user by _id
     const user = await UserModel.findOne({ _id: userId });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -666,8 +783,13 @@ app.post('/customMeals', async (req, res) => {
     const existingMeal = await CustomMeal.findOne({ _id: userId });
 
     if (existingMeal) {
-      // If a meal exists, push the new mealData to the end of the meals array
-      existingMeal.meals.push(...mealsData);
+      // If a meal exists, find the meals array for the provided day
+      const dayMeals = existingMeal[dayOfWeek].meals;
+
+      // Push the new mealData to the end of the meals array for the specified day
+      dayMeals.push(...mealsData);
+
+      // Update the date to the current date
       existingMeal.date = currentDate;
 
       // Save the updated CustomMeal document
@@ -677,8 +799,8 @@ app.post('/customMeals', async (req, res) => {
     } else {
       // If a meal does not exist, create a new CustomMeal document with the current date
       const newMeal = new CustomMeal({
-        _id: userId, // Use the user's _id as the _id
-        meals: mealsData, // Store it as a JavaScript object
+        _id: userId,
+        [dayOfWeek.toLowerCase()]: { meals: mealsData }, // Create a new day property with mealsData
         date: currentDate,
       });
 
@@ -692,6 +814,41 @@ app.post('/customMeals', async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
+
+
+app.post('/fetchCustomMeals', async (req, res) => {
+  try {
+    const { _id, dayOfWeek } = req.body;
+
+    // Convert the provided userId (string) to a mongoose ObjectId
+    const userIdObject = new mongoose.Types.ObjectId(_id);
+
+    // Find the user by userId
+    const user = await UserModel.findOne({ _id: userIdObject });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if a meal with the specified userId exists
+    const existingMeal = await CustomMeal.findOne({ _id: userIdObject });
+
+    if (existingMeal) {
+      // Access the meals array for the specified day
+      const mealsForDay = existingMeal[dayOfWeek].meals;
+
+      res.json({ meals: mealsForDay });
+    } else {
+      res.json({ meals: [] }); // Return an empty array if no meals are found
+    }
+  } catch (error) {
+    console.error('Error fetching meals:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
 
 
 

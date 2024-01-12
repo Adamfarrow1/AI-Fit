@@ -14,7 +14,7 @@ export default function Mealplans({ navigation }) {
 
 
 
-
+  const [customMeals, setCustomMeals] = useState([]);
   const [selectedDay, setSelectedDay] = useState(1);
   const [caloriesConsumed, setCaloriesConsumed] = useState(0);
   const [totalCaloriesNeeded, setTotalCal] = useState(1800);
@@ -275,6 +275,9 @@ export default function Mealplans({ navigation }) {
       console.error(error);
     }
   }
+
+
+
   
 
 
@@ -292,6 +295,27 @@ export default function Mealplans({ navigation }) {
     { label: 'Sun', value: 7, fullName: "Sunday"},
   ];
 
+
+
+ 
+  const getCustomMeals = async () =>{
+   
+    try{
+      console.log("geting custom meals now------------------------------")
+      console.log(daysOfWeek[selectedDay - 1].fullName)
+      const response = await axios.post('http://' + GLOBAL_IP + ':3000/fetchCustomMeals', {
+        _id: user._id,
+        dayOfWeek: daysOfWeek[selectedDay - 1].fullName,
+      });
+      console.log(response.data.meals);
+      setCustomMeals(response.data.meals);
+    }
+    catch(e){
+      console.log("geting custom meals now------------------------------")
+      console.log(daysOfWeek[selectedDay - 1].fullName)
+      console.error("error fetching custom meals:", e)
+    }
+  }
 
 
   // useEffect(() => {
@@ -324,7 +348,7 @@ export default function Mealplans({ navigation }) {
       // Call your function only once
       calculateTDEE();
        getMeals();
-      
+      getCustomMeals();
       // Mark that the effect has run
       setHasFocusEffectRun(true);
     }
@@ -334,9 +358,16 @@ export default function Mealplans({ navigation }) {
     if (day === selectedDay) {
       return;
     } else {
+      
       setSelectedDay(day);
+      
     }
   };
+
+  useEffect(() => {
+    console.log("day has changed....")
+    getCustomMeals();
+  }, [selectedDay])
 
   return (
     <ScrollView style={{backgroundColor: "#161618"}}>
@@ -406,7 +437,35 @@ export default function Mealplans({ navigation }) {
       <Text style={styles.title}>{selectedDay !== null ? "Your meals for " + daysOfWeek[selectedDay - 1].fullName + ":" : null}</Text>
 
       <ScrollView style={styles.viewbg}>
-            
+      {customMeals ? (
+  customMeals.map((meal, index) => (
+    <View key={index}>
+      <Text style={styles.sectionTitle}>{meal.mealName}:</Text>
+      <TouchableOpacity
+        style={styles.foodContainer}
+        onPress={() => { handleFoodContainerPress(meal.details) }}
+        key={index}
+      >
+        <View style={styles.foodTitleMaxW}>
+          <Text style={styles.foodTitle}>{meal.details.name}</Text>
+          <Text style={styles.foodsubTitle}>{meal.details.calories + " Calories"}</Text>
+        </View>
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.details}>Details</Text>
+          <MaterialIcons
+            style={{ marginRight: 5 }}
+            name="arrow-forward-ios"
+            size={16}
+            color="white"
+          />
+        </View>
+      </TouchableOpacity>
+    </View>
+  ))
+) : (
+  <Text>No meals available</Text>
+)}
+
       </ScrollView>
 
 
@@ -416,7 +475,7 @@ export default function Mealplans({ navigation }) {
 
 
 
-      <Text style={styles.title}>{selectedDay !== null ? "Recommended meals for " + daysOfWeek[selectedDay - 1].fullName + ":" : null}</Text>
+      <Text style={styles.title}>AI generated meal reccomendations:</Text>
       <ScrollView style={styles.viewbg}>
   {mealsData.map((meal, index) => (
     <View key={index}>

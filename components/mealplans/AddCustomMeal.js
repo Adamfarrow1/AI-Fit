@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 import { GLOBAL_IP } from 'react-native-dotenv';
 import { useAuth } from '../../context/authcontext';
 import axios from 'axios';
@@ -14,6 +15,8 @@ const CustomMealForm = () => {
   const [ingredientName, setIngredientName] = useState('');
   const [amount, setAmount] = useState('');
   const { user } = useAuth();
+  const [selectedDay, setSelectedDay] = useState('');
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 
   const handleAddMealDB = async () => {
@@ -22,10 +25,11 @@ const CustomMealForm = () => {
   
       const response = await axios.post(`http://${process.env.GLOBAL_IP}:3000/customMeals`, {
         _id: user._id,
+        dayOfWeek: selectedDay,
         mealsData: [
           {
             mealName: mealTitle, // Assuming mealTitle is the meal name
-            foods: {
+            details: {
               name: mealName, // Assuming mealName is the food name
               calories: totalCalories, // Assuming totalCalories is the total calories
               ingredients: ingredients,
@@ -93,6 +97,7 @@ const CustomMealForm = () => {
     });
   }, [navigation, handleAddMeal]);
 
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -107,6 +112,20 @@ const CustomMealForm = () => {
           onChangeText={setMealTitle}
           placeholder="Enter Meal Title (e.g., Snack 1, Lunch, Afternoon Snack)"
         />
+
+      <Text style={styles.label}>Day of the week:</Text>
+      <Picker
+        selectedValue={selectedDay}
+        onValueChange={(itemValue, itemIndex) => setSelectedDay(itemValue)}
+        itemStyle={styles.pickerItem}
+      >
+        <Picker.Item label="Select a day" value="" />
+        {daysOfWeek.map((day, index) => (
+          <Picker.Item  color="#ffffff" key={index} label={day} value={day} />
+        ))}
+      </Picker>
+
+
 
         <Text style={styles.label}>Meal Name:</Text>
         <TextInput
@@ -169,6 +188,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: 16,
+  },
+  pickerItem: {
+    color: '#ffffff', // Set the text color of picker items to white
   },
   label: {
     fontSize: 17,
