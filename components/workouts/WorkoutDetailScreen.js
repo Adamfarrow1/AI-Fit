@@ -18,10 +18,8 @@ export default function WorkoutDetailScreen({ route }) {
     const [showQuiz, setShowQuiz] = useState(false);
     const [answerOne, setAnswerOne] = useState('');
     const [answerTwo, setAnswerTwo] = useState('');
-
-    
-
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+
 
     const getCurrentDay = () => {
         const days = ['Su', 'M', 'T', 'W', 'Th', 'F', 'S'];
@@ -105,21 +103,21 @@ export default function WorkoutDetailScreen({ route }) {
     
 
     const calculateProgress = () => {
-        const totalExercises = workoutGroup.workouts.length;
-        let totalSets = 0;
-        let completedSets = 0;
-      
-        workoutGroup.workouts.forEach((exercise, index) => {
-          totalSets += parseInt(exercise.sets);
-          if (index < currentExerciseIndex) {
-            completedSets += parseInt(exercise.sets);
-          } else if (index === currentExerciseIndex) {
-            completedSets += currentSet - 1;
-          }
-        });
-      
-        return completedSets / totalSets;
-      };
+    const totalExercises = workoutGroup.workouts.length;
+    let totalSets = 0;
+    let completedSets = 0;
+    
+    workoutGroup.workouts.forEach((exercise, index) => {
+        totalSets += parseInt(exercise.sets);
+        if (index < currentExerciseIndex) {
+        completedSets += parseInt(exercise.sets);
+        } else if (index === currentExerciseIndex) {
+        completedSets += currentSet - 1;
+        }
+    });
+    
+    return completedSets / totalSets;
+    };
       
 
 
@@ -127,7 +125,7 @@ export default function WorkoutDetailScreen({ route }) {
     return (
     <View style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                 <Ionicons name="arrow-back" size={24} color="black" />
                 <Text> </Text>
             </TouchableOpacity>
