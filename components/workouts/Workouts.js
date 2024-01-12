@@ -179,8 +179,8 @@ useEffect(() => {
       flatListRef.current.scrollToOffset({ offset: totalContentWidth / 3 - totalContentWidth, animated: false });
     }
   };
-  
-  
+
+
 
 
 
@@ -253,7 +253,6 @@ useEffect(() => {
     if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
       console.log('Workout already fetched for today, displaying todays message...');
       dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-      createCustomWorkout();
       return; //  TAKE USER TO THE WORKOUT
     }
 
@@ -298,7 +297,6 @@ useEffect(() => {
       console.error("An error occurred while fetching data from OpenAI API:", error);
     }
     setLastWorkoutDate(currentDate);//THIS NEEDS TO BE STORED SOMEWHERE
-
     
     
     //setIsFetchingWorkout(false);// CREATE A WORKOUT SCREEN THAT IS JUST LIKE THE LOGIN THAT SAYS PLEASE WAIT WHILE WE MAKE U BLAHBLAHBLAH
@@ -323,15 +321,7 @@ useEffect(() => {
   }
 
 
-
   
-
-
-
-
-  const getAIworkout = () =>{
-    return user.dailyAIWorkout[0];
-  }
 
 
 
@@ -347,7 +337,7 @@ useEffect(() => {
   
     // Use the AI to generate a complete workout plan
     const aiWorkoutPrompt = `
-        ONLY RETURN a json of a personalized workout for the following user using ONLY some of these select workouts, based on which ones will be most benifitial: 
+        ONLY RETURN a json of a personalized workout for the following user using ONLY choose from these select workouts and use the exact text that is in quotations for the names, based on which ones will be most benifitial: 
         "Archer-Pull-up", "Arm-Circles", "Arm-Crossover", "Assisted-Pull-up", "Barbell-Curl", 
         "Barbell-Bench-Press", "Barbell-Bent-Over-Row", "Barbell-Deadlift", 
         "Barbell-Behind-The-Back-Deadlift", "Bench-Dip", "Basic-to-Cross-Donkey-Kick", 
@@ -384,7 +374,7 @@ useEffect(() => {
                     "videoURL": "http://example.com/archerpullup-video"
                 },
                 {
-                    "name": "Barbell Deadlift",
+                    "name": "Barbell-Deadlift",
                     "description": "A fundamental strength exercise that works the entire posterior chain, including the glutes, hamstrings, and lower back.",
                     "tip": "Keep your back straight and drive the movement from your hips.",
                     "sets": "5",
@@ -392,7 +382,7 @@ useEffect(() => {
                     "videoURL": "http://example.com/barbelldeadlift-video"
                 },
                 {
-                    "name": "Bench Dip",
+                    "name": "Bench-Dip",
                     "description": "Triceps-focused exercise that also engages the shoulders and chest.",
                     "tip": "Keep your elbows pointing backward and lower your body until your arms are at a 90-degree angle.",
                     "sets": "4",
@@ -400,7 +390,7 @@ useEffect(() => {
                     "videoURL": "http://example.com/benchdip-video"
                 },
                 {
-                    "name": "Barbell Front Bench Squat",
+                    "name": "Barbell-Front-Bench-Squat",
                     "description": "Targets the quadriceps and core stability by placing the barbell in front of the body.",
                     "tip": "Keep your elbows up and maintain a straight back throughout the squat.",
                     "sets": "4",
@@ -425,7 +415,7 @@ useEffect(() => {
         body: JSON.stringify({
           model: "gpt-3.5-turbo-instruct",
           prompt: aiWorkoutPrompt,
-          max_tokens: 900,
+          max_tokens: 1200,
           temperature: 0.9,
         }),
       });
@@ -489,8 +479,17 @@ useEffect(() => {
       return null;
     }
   }
+
   
 
+
+
+  
+
+  const getAIworkout = () =>{
+    const work = user.dailyAIWorkout[0]
+    return work;
+  }
 
 
   // _______________________________________________________________________________________________________
@@ -547,7 +546,6 @@ useEffect(() => {
 
   // NAVIGATION FUNCTION
   const navigateToWorkoutDetail = (workoutGroup) => {
-  
     if (navigation && workoutGroup) {
       console.log('Navigating to WorkoutDetailScreen with:', workoutGroup);
       navigation.navigate('WorkoutDetailScreen', { workoutGroup });
@@ -591,19 +589,22 @@ useEffect(() => {
               
               {/* "Go to Workout" Button */}
               <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => {
-                    navigateToWorkoutDetail(getAIworkout());
-                    dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-                  }}
+                style={styles.button}
+                onPress={() => {
+                  const AIworkoutDetails = getAIworkout();
+                  navigation.navigate('LoadingScreen', { workouts: AIworkoutDetails });
+                  createCustomWorkout();
+                  dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+                }}
               >
+                
                   <Text style={styles.buttonText}>Go to Workout</Text>
               </TouchableOpacity>
 
               {/* Close Button - Now at the bottom */}
               <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
+                style={styles.closeButton}
+                onPress={() => dispatch({ type: 'TOGGLE_SUMMARY_MODAL' })}
               >
                   <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
