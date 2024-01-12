@@ -47,6 +47,8 @@ const reducer = (state, action) => {
 
     case 'SET_AI_WORKOUT_DESCRIPTION':
       return { ...state, aiWorkoutDescription: action.payload };
+
+
     default:
       return state;
   }
@@ -57,7 +59,6 @@ const ITEM_WIDTH = width * 0.7; // 70% of the screen width
 const ITEM_HEIGHT = ITEM_WIDTH; // Maintaining a 3:2 aspect ratio
 const ITEM_MARGIN = width * 0.04; // Example: 4% of the screen width, adjust as needed
 const HEIGHT = ITEM_HEIGHT + (2 * ITEM_MARGIN);
-
 
 const aihight = ITEM_HEIGHT * -0.4// SUPPOSED TO KEEP THE AI WORKOUT DISCRIPTION BOX IN THE SAME PLACE BUT DOESNT WORK
 
@@ -111,6 +112,22 @@ export default function Workouts() {
   const handleNavigateToMonthlyProgress = () => {
     navigation.navigate('MonthlyProgress'); // Replace 'MonthlyProgress' with the actual route name if it's different
 };
+
+
+const fetchWorkoutGroups = async () => {
+  try {
+    const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
+    dispatch({ type: 'SET_WORKOUT_GROUPS', payload: response.data.workoutGroups });
+
+  } catch (error) {
+    console.error('Error fetching workout groups:', error);
+  }
+};
+useEffect(() => {
+  fetchWorkoutGroups();
+}, []);
+
+
 
 
 
@@ -232,17 +249,18 @@ export default function Workouts() {
   //Get the SUMMARY workout
   const fetchAIWorkoutSummary = async () => {
 
-    
     const currentDate = new Date().toDateString();
     if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
       console.log('Workout already fetched for today, displaying todays message...');
       dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+      createCustomWorkout();
       return; //  TAKE USER TO THE WORKOUT
     }
 
 
+
     setIsFetchingWorkout(true);
-    const userPrompt = `You're currently contributing to an AI fitness app, tasked with generating concise, personalized workout summaries. For ${user.fullName}, a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, aiming for ${user.goal}, and with a workout history of ${user.workoutHistory}, your role is to provide a tailored three-sentence exercise plan.`;
+    const userPrompt = `You're currently contributing to an AI fitness app, tasked with generating concise, personalized workout summaries. For ${user.fullName}, a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, aiming for ${user.goal}, and with a workout history of ${user.workoutHistory}, your role is to provide a tailored three-sentence brief overview plan.`;
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
         method: 'POST',
@@ -253,8 +271,8 @@ export default function Workouts() {
 
         },
         body: JSON.stringify({
-          model: "text-davinci-003",
-          prompt: userPrompt + " Please include why this workout type is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them. Ensure that you do not include any extra characters or symbols",
+          model: "gpt-3.5-turbo-instruct",
+          prompt: userPrompt + " Please include the workout type we will assign them and why this workout type is beneficial for the user. Now output the preview for today in an exciting tone that addresses the current user as if you were talking to them. Don't mention specififc parts of the workout like certain excersizes or timeframes. Ensure that you do not include any extra characters or symbols",
           max_tokens: 100,
           temperature: 1,
         }),
@@ -270,6 +288,7 @@ export default function Workouts() {
         } else {
           console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
         }
+        
       } else {
         console.error("Failed to fetch data from OpenAI API. Status:", res.status, "Status Text:", res.statusText);
         const errorResponse = await res.text();
@@ -279,6 +298,9 @@ export default function Workouts() {
       console.error("An error occurred while fetching data from OpenAI API:", error);
     }
     setLastWorkoutDate(currentDate);//THIS NEEDS TO BE STORED SOMEWHERE
+
+    
+    
     //setIsFetchingWorkout(false);// CREATE A WORKOUT SCREEN THAT IS JUST LIKE THE LOGIN THAT SAYS PLEASE WAIT WHILE WE MAKE U BLAHBLAHBLAH
   };
 
@@ -286,13 +308,13 @@ export default function Workouts() {
   function extractFromFirstCapital(text) {
     // Regular expression to find the first uppercase letter
     const firstCapitalRegex = /[A-Z]/;
-  
     // Finding the first occurrence of a capital letter
     const match = firstCapitalRegex.exec(text);
+    const final = text.substring(match.index)
   
     // If a match is found, return the substring from the match position to the end
     if (match) {
-      dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload:  text.substring(match.index) });
+      dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload:final });
       dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
     } else {
       // If no capital letter is found, return a default message or handle as needed
@@ -301,13 +323,15 @@ export default function Workouts() {
   }
 
 
+
   
 
 
 
 
-
-
+  const getAIworkout = () =>{
+    return user.dailyAIWorkout[0];
+  }
 
 
 
@@ -316,14 +340,26 @@ export default function Workouts() {
 
   const createCustomWorkout = async () => {
     // Check if AI-generated workout description is available
-    if (!aiWorkoutDescription) {
+    if (!state.aiWorkoutDescription) {
       console.error('AI workout description is not available');
       return;
     }
   
     // Use the AI to generate a complete workout plan
     const aiWorkoutPrompt = `
-        Create a personalized workout for the following user in a JSON format:
+        ONLY RETURN a json of a personalized workout for the following user using ONLY some of these select workouts, based on which ones will be most benifitial: 
+        "Archer-Pull-up", "Arm-Circles", "Arm-Crossover", "Assisted-Pull-up", "Barbell-Curl", 
+        "Barbell-Bench-Press", "Barbell-Bent-Over-Row", "Barbell-Deadlift", 
+        "Barbell-Behind-The-Back-Deadlift", "Bench-Dip", "Basic-to-Cross-Donkey-Kick", 
+        "Barbell-Front-Bench-Squat", "Arm-slingers-Hanging-Bent-Knee-Legs", 
+        "90-Degree-Heel-Touch-Abs", "45-Degree-Hip-Extension-Glute-Focused", 
+        "Air-Twisting-Crunch", "Alternate-Lateral-Pulldown", "Alternate-Leg-Raise", 
+        "Band-Alternate-Low-Chest-Fly", "45-degree-Bycicle-Twisting-Crunch", 
+        "Barbell-Back-Wide-Shrug", "45-degree-Side-Bend_Waist", "Sit-up", "Weighted-Crunch", 
+        "Assisted-Bulgarian-Split-Squat", "Barbell-Full-Squat", "Alternating-Superman_Hips". Use the exact title for the workout
+        
+
+        User info:
         - Age: ${user.age} years
         - Gender: ${user.gender}
         - Weight: ${user.weight} lbs
@@ -332,179 +368,51 @@ export default function Workouts() {
         - Recent Workouts: ${user.workoutHistory.join(', ')}
 
         The workout plan should be suitable for the user's fitness level and goals. 
-        Please include a variety of exercises targeting different muscle groups, 
-        with specific details using this format from these examples: "groupName": "Advanced Strength Training",
-        "workouts": [
-            {
-                "name": "Squat",
-                "description": "High weight, low rep barbell squats for leg strength.",
-                "videoURL": "http://example.com/squat-video",
-                "tip": "Keep your back straight and drive through your heels.",
-                "sets": "5",
-                "reps": "5"
-            },
-            {
-                "name": "Deadlift",
-                "description": "Heavy deadlifts focusing on form and power.",
-                "videoURL": "http://example.com/deadlift-video",
-                "tip": "Keep your spine neutral and use your legs to lift.",
-                "sets": "5",
-                "reps": "5"
-            },
-            {
-                "name": "Bench Press",
-                "description": "Barbell bench press for chest, shoulders, and triceps.",
-                "videoURL": "http://example.com/benchpress-video",
-                "tip": "Lower the bar to your mid-chest and press up explosively.",
-                "sets": "5",
-                "reps": "5"
-            },
-            {
-                "name": "Pull Up",
-                "description": "Wide-grip pull-ups for upper back and arm muscles.",
-                "videoURL": "http://example.com/pullup-video",
-                "tip": "Lead with your chest and pull until your chin is over the bar.",
-                "sets": "4",
-                "reps": "8-10"
-            },
-            {
-                "name": "Military Press",
-                "description": "Standing overhead press for shoulder strength.",
-                "videoURL": "http://example.com/militarypress-video",
-                "tip": "Keep your core tight and press straight overhead.",
-                "sets": "4",
-                "reps": "6-8"
-            },
-            {
-                "name": "Barbell Row",
-                "description": "Bent-over barbell rows for back and biceps.",
-                "videoURL": "http://example.com/barbellrow-video",
-                "tip": "Keep your back parallel to the ground and pull the bar to your waist.",
-                "sets": "4",
-                "reps": "8-10"
-            }
-          ]
-    },
-    {
-        "groupName": "HIIT Workout",
-        "workouts": [
-            {
-                "name": "Interval Sprints",
-                "description": "Short, high-intensity sprints with rest periods to boost cardiovascular fitness.",
-                "videoURL": "http://example.com/intervalsprints-video",
-                "tip": "Sprint at maximum effort for 30 seconds, then walk or jog for 1 minute.",
-                "sets": "10",
-                "reps": "N/A"
-            },
-            {
-                "name": "Jump Rope",
-                "description": "High-tempo jump rope sessions for coordination and stamina.",
-                "videoURL": "http://example.com/jumprope-video",
-                "tip": "Maintain a steady rhythm and use your wrists to swing the rope.",
-                "sets": "5",
-                "reps": "3 minutes per set"
-            },
-            {
-                "name": "Burpees",
-                "description": "Full-body exercise for strength and aerobic endurance.",
-                "videoURL": "http://example.com/burpees-video",
-                "tip": "Keep your movements fluid and jump high during each repetition.",
-                "sets": "4",
-                "reps": "15-20"
-            },
-            {
-                "name": "Mountain Climbers",
-                "description": "Dynamic plank exercise for core strength and cardio.",
-                "videoURL": "http://example.com/mountainclimbers-video",
-                "tip": "Maintain a tight core and rapidly alternate your legs.",
-                "sets": "4",
-                "reps": "30 seconds per set"
-            },
-            {
-                "name": "High Knees",
-                "description": "Running in place with high knees to improve cardio and leg strength.",
-                "videoURL": "http://example.com/highknees-video",
-                "tip": "Drive your knees as high as possible and maintain a fast pace.",
-                "sets": "5",
-                "reps": "1 minute per set"
-            }
-          ]
-    },
-    {
-        "groupName": "Stress Relief Yoga Sequence",
-        "workouts": [
-            {
-                "name": "Breathing Exercise (Pranayama)",
-                "description": "Deep breathing exercises to calm the mind and reduce anxiety.",
-                "videoURL": "http://example.com/pranayama-video",
-                "tip": "Inhale deeply through your nose, hold for a few seconds, then exhale slowly through the mouth.",
-                "sets": "1",
-                "reps": "5 minutes"
-            },
-            {
-                "name": "Child's Pose (Balasana)",
-                "description": "Gentle stretch for the back, hips, thighs, and ankles, helps release tension.",
-                "videoURL": "http://example.com/childspose-video",
-                "tip": "Focus on relaxing your body with each exhale, allowing the stress to melt away.",
-                "sets": "1",
-                "reps": "Hold for 2-3 minutes"
-            },
-            {
-                "name": "Cat-Cow Stretch (Marjaryasana-Bitilasana)",
-                "description": "Gently massages the spine and belly organs, useful for stress relief.",
-                "videoURL": "http://example.com/catcow-video",
-                "tip": "Coordinate your breath with the movement, inhaling as you arch the back and exhaling as you round the spine.",
-                "sets": "1",
-                "reps": "1-2 minutes"
-            },
-            {
-                "name": "Forward Bend (Uttanasana)",
-                "description": "Stretches the hamstrings and spine, calms the mind and relieves tension in the neck and back.",
-                "videoURL": "http://example.com/forwardbend-video",
-                "tip": "Bend your knees slightly if needed, and let your head hang heavily to deepen the stretch.",
-                "sets": "2",
-                "reps": "Hold for 1 minute each"
-            },
-            {
-                "name": "Legs Up The Wall (Viparita Karani)",
-                "description": "Relieves tired leg muscles, helps calm the nervous system.",
-                "videoURL": "http://example.com/legsupthewall-video",
-                "tip": "Support your lower back with a cushion and allow your arms to relax by your sides.",
-                "sets": "1",
-                "reps": "Hold for 5-10 minutes"
-            },
-            {
-                "name": "Corpse Pose (Savasana)",
-                "description": "Deep relaxation pose, helps to reduce stress, anxiety, and fatigue.",
-                "videoURL": "http://example.com/savasana-video",
-                "tip": "Close your eyes, breathe naturally, and focus on releasing tension from every part of your body.",
-                "sets": "1",
-                "reps": "5-10 minutes"
-            }
-          ]
-    },
-        and also keep in mind it must be able to run through this function, so only include what needs to be passed to this
-        "app.post('/addWorkoutGroup', async (req, res) => {
-          try {
-            // Assuming req.body contains the groupName and an array of workouts
-            const { groupName, workouts } = req.body;
+        Please at least 5 workouts, 
+        with specific details using this format: 
         
-            // Create a new instance of WorkoutGroupModel
-            const workoutGroup = new WorkoutGroupModel({
-              groupName,
-              workouts
-            });
         
-            // Save the new workout group to the database
-            await workoutGroup.save();
+        {
+            "groupName": "Strength and Conditioning Workout",
+            "workouts": [
+                {
+                    "name": "Archer-Pull-up",
+                    "description": "Targets the upper body muscles, especially the back and biceps, with unilateral movement for improved strength and symmetry.",
+                    "tip": "Focus on keeping one arm straight while pulling up with the other.",
+                    "sets": "4",
+                    "reps": "6-8 per arm",
+                    "videoURL": "http://example.com/archerpullup-video"
+                },
+                {
+                    "name": "Barbell Deadlift",
+                    "description": "A fundamental strength exercise that works the entire posterior chain, including the glutes, hamstrings, and lower back.",
+                    "tip": "Keep your back straight and drive the movement from your hips.",
+                    "sets": "5",
+                    "reps": "8-10",
+                    "videoURL": "http://example.com/barbelldeadlift-video"
+                },
+                {
+                    "name": "Bench Dip",
+                    "description": "Triceps-focused exercise that also engages the shoulders and chest.",
+                    "tip": "Keep your elbows pointing backward and lower your body until your arms are at a 90-degree angle.",
+                    "sets": "4",
+                    "reps": "12-15",
+                    "videoURL": "http://example.com/benchdip-video"
+                },
+                {
+                    "name": "Barbell Front Bench Squat",
+                    "description": "Targets the quadriceps and core stability by placing the barbell in front of the body.",
+                    "tip": "Keep your elbows up and maintain a straight back throughout the squat.",
+                    "sets": "4",
+                    "reps": "8-10",
+                    "videoURL": "http://example.com/barbellfrontbenchsquat-video"
+                }
+            ]
+        }
+
+
         
-            res.status(201).json({ message: 'Workout group created successfully', workoutGroup });
-          } catch (error) {
-            console.error('Error creating workout group:', error);
-            res.status(500).json({ error: 'An error occurred while creating the workout group' });
-          }
-        });"
-        If there's no recent workout history, consider this as the first workout session for the user. 
+        
     `;
     try {
       const aiRes = await fetch('https://api.openai.com/v1/completions', {
@@ -515,10 +423,10 @@ export default function Workouts() {
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "text-davinci-003",
+          model: "gpt-3.5-turbo-instruct",
           prompt: aiWorkoutPrompt,
-          max_tokens: 1000,
-          temperature: 0.7,
+          max_tokens: 900,
+          temperature: 0.9,
         }),
       });
   
@@ -543,13 +451,12 @@ export default function Workouts() {
         }
       } else {
         console.error("Failed to fetch data from AI API. Status:", aiRes.status, "Status Text:", aiRes.statusText);
-        const errorResponse = await aiRes.text();
-        console.error("Error Response Body:", errorResponse);
       }
     } catch (error) {
       console.error("An error occurred while fetching data from AI API:", error);
     }
   };
+
   
 
   function parseAIWorkoutPlan(aiWorkoutPlan) {
@@ -655,25 +562,7 @@ export default function Workouts() {
 
   // ----------------------------- PRESET WORKOUT PROGRAMS --------------------------------------------------------------
 
-  // Get the information from the database
-  const fetchWorkoutGroups = async () => {
-    try {
-      const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
-      dispatch({ type: 'SET_WORKOUT_GROUPS', payload: response.data.workoutGroups });
 
-    } catch (error) {
-      console.error('Error fetching workout groups:', error);
-    }
-  };
-  useEffect(() => {
-    fetchWorkoutGroups();
-  }, []);
-
-  
-
-  const handleCloseSummary = () => {
-    dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-  };
   
   //____________________________  ANIMATIONS ______________________________________
 
@@ -685,6 +574,7 @@ export default function Workouts() {
 
 
 
+  
   
 
   const renderSummaryModal = () => {
@@ -702,7 +592,10 @@ export default function Workouts() {
               {/* "Go to Workout" Button */}
               <TouchableOpacity
                   style={styles.button}
-                  onPress={() => navigateToWorkout()}
+                  onPress={() => {
+                    navigateToWorkoutDetail(getAIworkout());
+                    dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+                  }}
               >
                   <Text style={styles.buttonText}>Go to Workout</Text>
               </TouchableOpacity>
