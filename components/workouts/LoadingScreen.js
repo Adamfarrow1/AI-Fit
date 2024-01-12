@@ -34,7 +34,7 @@ const LoadingScreen = ({ route }) => {
 
       navigateToWorkoutDetail(route.params.workouts);
 
-    }, 15000);
+    }, 14500);
 
     return () => clearInterval(intervalId);
   }, []);
