@@ -85,6 +85,70 @@ module.exports = WorkoutGroupModel;
 
 // WORKOUT CALLS ___________________________________________________________________
 
+
+
+app.put('/user/:userId/updateWeight', async (req, res) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(_id);
+    const { weight } = req.body;
+
+    if (!weight) {
+      return res.status(400).json({ error: 'Weight is required' });
+    }
+
+    // Create a new weight record with the current date
+    const newWeightRecord = {
+      date: new Date(), // This will automatically set the current date
+      weight: weight
+    };
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { $push: { weeklyWeights: newWeightRecord } }, // Using $push to add the new record to the array
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Weight updated successfully', updatedUser });
+  } catch (error) {
+    console.error('Error updating user weight:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+
+app.get('/user/:userId/weightData', async (req, res) => {
+  try {
+    // Extract userId from req.params
+    const _id = req.params.userId;
+
+    // Convert _id to mongoose ObjectId
+    const userId = new mongoose.Types.ObjectId(_id);
+
+    // Find user by ID and retrieve weeklyWeights
+    const user = await UserModel.findById(userId, 'weeklyWeights');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Send the user's weeklyWeights in response
+    res.json(user.weeklyWeights);
+  } catch (error) {
+    console.error('Error fetching weight data:', error);
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
+
+
+
+
+
+
 app.post('/user/:userId/recordWorkout', async (req, res) => {
   try {
       const { userId } = req.params;
