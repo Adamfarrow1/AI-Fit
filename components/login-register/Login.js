@@ -26,7 +26,6 @@ export default function Login() {
   const handleLogin = async () => {
 
     try {
-      console.log("attempted login")
       const response = await axios.post('http://'+ process.env.GLOBAL_IP + ':3000/login', {
         userName: username,
         password: password,
