@@ -91,6 +91,7 @@ export default function Workouts() {
   const animatedValue = useRef(new Animated.Value(1)).current;
   const [showWorkoutOptions, setShowWorkoutOptions] = useState(false);
   const [modalAnimation] = useState(new Animated.Value(0)); // 0 represents the initial value
+  const [weightData, setWeightData] = useState([]);
   const data = {
     labels: ["January", "February", "March", "April", "May", "June"],
     datasets: [
@@ -114,18 +115,18 @@ export default function Workouts() {
 };
 
 
-const fetchWorkoutGroups = async () => {
-  try {
-    const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
-    dispatch({ type: 'SET_WORKOUT_GROUPS', payload: response.data.workoutGroups });
+  const fetchWorkoutGroups = async () => {
+    try {
+      const response = await axios.get(`http://${process.env.GLOBAL_IP}:3000/getWorkoutGroups`);
+      dispatch({ type: 'SET_WORKOUT_GROUPS', payload: response.data.workoutGroups });
 
-  } catch (error) {
-    console.error('Error fetching workout groups:', error);
-  }
-};
-useEffect(() => {
-  fetchWorkoutGroups();
-}, []);
+    } catch (error) {
+      console.error('Error fetching workout groups:', error);
+    }
+  };
+  useEffect(() => {
+    fetchWorkoutGroups();
+  }, []);
 
 
 
@@ -143,6 +144,19 @@ useEffect(() => {
     index,
   });
   
+  useEffect(() => {
+    const fetchWeightData = async () => {
+      try {
+        const response = await fetch('http://${process.env.GLOBAL_IP}:3000/user/${user._id}/weightData');
+        const data = await response.json();
+        setWeightData(data);
+      } catch (error) {
+        console.error('Error fetching weight data:', error);
+      }
+    };
+  
+    fetchWeightData();
+  }, []);
   
 
   useEffect(() => {
@@ -153,6 +167,8 @@ useEffect(() => {
   }, [state.workoutGroups]);  
   
 
+  
+  
 
   const renderCarouselItem = ({ item, index }) => {
     return (
@@ -248,17 +264,14 @@ useEffect(() => {
 
   //Get the SUMMARY workout
   const fetchAIWorkoutSummary = async () => {
-
     const currentDate = new Date().toDateString();
-    if (lastWorkoutDate === currentDate) {//FIX THIS IT NEEDS TO BE STORED PROPERLY
-      console.log('Workout already fetched for today, displaying todays message...');
+    if (lastWorkoutDate === currentDate) {
+      console.log('Workout already fetched for today, displaying today’s message...');
       dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-      return; //  TAKE USER TO THE WORKOUT
+      return;
     }
 
 
-
-    setIsFetchingWorkout(true);
     const userPrompt = `You're currently contributing to an AI fitness app, tasked with generating concise, personalized workout summaries. For ${user.fullName}, a ${user.age}-year-old ${user.gender}, weighing ${user.weight} lbs, ${user.height} cm tall, aiming for ${user.goal}, and with a workout history of ${user.workoutHistory}, your role is to provide a tailored three-sentence brief overview plan.`;
     try {
       const res = await fetch('https://api.openai.com/v1/completions', {
@@ -277,48 +290,33 @@ useEffect(() => {
         }),
       });
       
-      if (res.ok) {
-        const responseJson = await res.json();
-  
-        // Check if the response contains the expected data
-        if (responseJson.choices && responseJson.choices.length > 0 && responseJson.choices[0].text) {
-          console.log("AI Workout Summary:", responseJson.choices[0].text);
-          extractFromFirstCapital(responseJson.choices[0].text );
-        } else {
-          console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
-        }
-        
-      } else {
-        console.error("Failed to fetch data from OpenAI API. Status:", res.status, "Status Text:", res.statusText);
+      if (!res.ok) {
         const errorResponse = await res.text();
-        console.error("Error Response Body:", errorResponse);
+        console.error("Failed to fetch data from OpenAI API. Status:", res.status, "Status Text:", res.statusText, "Error Response Body:", errorResponse);
+        return;
+      }
+  
+      const responseJson = await res.json();
+      if (responseJson.choices?.length > 0 && responseJson.choices[0].text) {
+        const text = responseJson.choices[0].text;
+        const firstCapitalIndex = text.search(/[A-Z]/);
+        if (firstCapitalIndex !== -1) {
+          const finalText = text.substring(firstCapitalIndex);
+          dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload: finalText });
+          dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
+        } else {
+          console.error("No capital letter found in the text.");
+        }
+      } else {
+        console.error("Invalid response structure:", JSON.stringify(responseJson, null, 2));
       }
     } catch (error) {
       console.error("An error occurred while fetching data from OpenAI API:", error);
+    } finally {
+      setLastWorkoutDate(currentDate);
+      setIsFetchingWorkout(false);
     }
-    setLastWorkoutDate(currentDate);//THIS NEEDS TO BE STORED SOMEWHERE
-    
-    
-    //setIsFetchingWorkout(false);// CREATE A WORKOUT SCREEN THAT IS JUST LIKE THE LOGIN THAT SAYS PLEASE WAIT WHILE WE MAKE U BLAHBLAHBLAH
   };
-
-
-  function extractFromFirstCapital(text) {
-    // Regular expression to find the first uppercase letter
-    const firstCapitalRegex = /[A-Z]/;
-    // Finding the first occurrence of a capital letter
-    const match = firstCapitalRegex.exec(text);
-    const final = text.substring(match.index)
-  
-    // If a match is found, return the substring from the match position to the end
-    if (match) {
-      dispatch({ type: 'SET_AI_WORKOUT_DESCRIPTION', payload:final });
-      dispatch({ type: 'TOGGLE_SUMMARY_MODAL' });
-    } else {
-      // If no capital letter is found, return a default message or handle as needed
-      return "No capital letter found in the text.";
-    }
-  }
 
 
   
